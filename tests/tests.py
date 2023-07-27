@@ -614,3 +614,22 @@ class PackageTests(TestCase):
         path_to_comm = new_comm.commit_path
         new_comm.delete()
         self.assertFalse(path_to_comm.exists())
+
+    def test_prepare_build(self):
+        """
+        It tests if the function prepare_build() works.
+        """
+        self.package.prepare_build('test')
+        self.assertTrue((self.package.commit_path / '.build' / 'test').is_dir())
+        self.package.delete_build('test')
+        self.assertFalse((self.package.commit_path / '.build' / 'test').is_dir())
+
+    def test_prepare_build_multiple(self):
+        """
+        It tests if the function prepare_build() works.
+        """
+        self.package.prepare_build('test')
+        self.package.prepare_build('test2')
+        self.assertTrue((self.package.commit_path / '.build' / 'test').is_dir())
+        self.package.delete_build()
+        self.assertFalse((self.package.commit_path / '.build').is_dir())

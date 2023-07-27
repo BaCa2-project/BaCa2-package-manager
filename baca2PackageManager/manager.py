@@ -203,6 +203,31 @@ class Package(PackageManager):
         for i in [x[0].replace(str(sets_path) + '\\', '') for x in walk(sets_path)][1:]:
             self._sets.append(TSet(sets_path / i))
 
+    def prepare_build(self, build_name: str):
+        """
+        It prepares the build
+
+        :param build_name: The name of the build
+        :type build_name: str
+        """
+        if not (self.commit_path / '.build').is_dir():
+            mkdir(self.commit_path / '.build')
+
+        if not (self.commit_path / '.build' / build_name).is_dir():
+            mkdir(self.commit_path / '.build' / build_name)
+
+    def delete_build(self, build_name: str = None):
+        """
+        Deletes the build. If build_name is None, it deletes all builds.
+
+        :param build_name: The name of the build, if None, it clears all builds
+        :type build_name: str
+        """
+        if build_name is None:
+            rmtree(self.commit_path / '.build')
+        else:
+            rmtree(self.commit_path / '.build' / build_name)
+
     @property
     def commit_path(self) -> Path:
         """
