@@ -6,7 +6,7 @@ from yaml import safe_load, dump
 from re import match
 
 from .validators import isAny, isNone, isInt, isIntBetween, isFloat, isFloatBetween, isStr, is_, isIn, isShorter, \
-    isDict, isPath, isSize, isList, memory_converting, valid_memory_size
+    isDict, isPath, isSize, isList, memory_converting, valid_memory_size, isBool
 from .consts import SUPPORTED_EXTENSIONS, BASE_DIR
 from .manager_exceptions import NoTestFound, NoSetFound, TestExistError
 
@@ -147,6 +147,7 @@ class Package(PackageManager):
     MAX_SUBMIT_MEMORY = '10G'
     #: Largest acceptable submit time
     MAX_SUBMIT_TIME = 600
+    MAX_CPUS = 16
     SETTINGS_VALIDATION = {
         'title': [[isStr]],
         'points': [[isInt], [isFloat]],
@@ -155,7 +156,9 @@ class Package(PackageManager):
         'allowedExtensions': [[isIn, *SUPPORTED_EXTENSIONS], [isList, [isIn, *SUPPORTED_EXTENSIONS]]],
         'hinter': [[isNone], [isPath]],
         'checker': [[isNone], [isPath]],
-        'test_generator': [[isNone], [isPath]]
+        'test_generator': [[isNone], [isPath]],
+        'network': [[isNone], [isBool]],
+        'cpus': [[isNone], [isIntBetween, 1, MAX_CPUS]]
     }
     """
     Validation for ``Package`` settings.
@@ -170,6 +173,8 @@ class Package(PackageManager):
         * ``hinter``: is a path or None value to actual hinter
         * ``checker``: is a path or None value to actual checker
         * ``test_generator``: is a path or None value to actual generator
+        * ``network``: is a bool value to allow network access
+        * ``cpus``: is a number of cpus to use
     """
 
     #: Default values for Package settings
@@ -181,7 +186,9 @@ class Package(PackageManager):
         'allowedExtensions': 'cpp',
         'hinter': None,
         'checker': None,
-        'test_generator': None
+        'test_generator': None,
+        'network': False,
+        'cpus': 1
     }
 
     def __init__(self, path: Path, commit: str) -> None:
@@ -215,6 +222,22 @@ class Package(PackageManager):
 
         if not (self.commit_path / '.build' / build_name).is_dir():
             mkdir(self.commit_path / '.build' / build_name)
+
+        return self.commit_path / '.build' / build_name
+
+    def check_build(self, build_name: str):
+        """
+        It checks if the build exists
+
+        :param build_name: The name of the build
+        :type build_name: str
+        """
+        build_dir = self.commit_path / '.build' / build_name
+
+        if not build_dir.is_dir():
+            return False
+
+        return any(list(walk(build_dir))[0][1:])
 
     def delete_build(self, build_name: str = None):
         """

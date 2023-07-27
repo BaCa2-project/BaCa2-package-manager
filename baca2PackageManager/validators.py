@@ -103,6 +103,15 @@ def isIn(val, *args):
     return val in args
 
 
+def isBool(val):
+    """
+    check if val is bool
+
+    :return: A boolean value.
+    """
+    return type(val) == bool
+
+
 def isShorter(val, l: int):
     """
     check if val is string and has len < len(l)
