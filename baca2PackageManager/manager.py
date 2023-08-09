@@ -1,3 +1,4 @@
+import shutil
 from copy import deepcopy
 from pathlib import Path
 from os import remove, replace, walk, mkdir, rename, listdir
@@ -205,7 +206,6 @@ class Package(PackageManager):
         config_path = self.commit_path / 'config.yml'
         sets_path = self.commit_path / 'tests'
         super().__init__(path, config_path, Package.DEFAULT_SETTINGS)
-        print(sets_path)
         self._sets = []
         for i in [x[0].replace(str(sets_path) + '\\', '') for x in walk(sets_path)][1:]:
             self._sets.append(TSet(sets_path / i))
@@ -220,10 +220,13 @@ class Package(PackageManager):
         if not (self.commit_path / '.build').is_dir():
             mkdir(self.commit_path / '.build')
 
-        if not (self.commit_path / '.build' / build_name).is_dir():
-            mkdir(self.commit_path / '.build' / build_name)
+        build_dir = self.commit_path / '.build' / build_name
 
-        return self.commit_path / '.build' / build_name
+        if build_dir.is_dir():
+            rmtree(build_dir)
+        mkdir(build_dir)
+
+        return build_dir
 
     def check_build(self, build_name: str):
         """
