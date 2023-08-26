@@ -3,6 +3,8 @@ from copy import deepcopy
 from pathlib import Path
 from os import remove, replace, walk, mkdir, rename, listdir
 from shutil import rmtree, copytree
+from typing import List
+
 from yaml import safe_load, dump
 from re import match
 
@@ -12,6 +14,7 @@ from .consts import SUPPORTED_EXTENSIONS, BASE_DIR
 from .manager_exceptions import NoTestFound, NoSetFound, TestExistError
 
 __all__ = ['Package', 'TSet', 'TestF']
+
 
 def merge_settings(default: dict, to_add: dict) -> dict:
     """
@@ -41,6 +44,7 @@ class PackageManager:
     """
     It's a class that manages a package's settings
     """
+
     def __init__(self, path: Path, settings_init: Path or dict, default_settings: dict):
         """
         If the settings_init is a dict, assign it to settings. If not, load the settings_init yaml file and assign it to
@@ -80,6 +84,12 @@ class PackageManager:
             return self._settings[arg]
         except KeyError:
             raise KeyError(f'No key named {arg} has found in self_settings')
+
+    def get(self, arg: str, default=None):
+        try:
+            return self._settings[arg]
+        except KeyError:
+            return default
 
     def __setitem__(self, arg: str, val):
         """
@@ -149,10 +159,12 @@ class Package(PackageManager):
     #: Largest acceptable submit time
     MAX_SUBMIT_TIME = 600
     MAX_CPUS = 16
+    MAX_SOURCE_SIZE = '512M'
     SETTINGS_VALIDATION = {
         'title': [[isStr]],
         'points': [[isInt], [isFloat]],
         'memory_limit': [[isSize, MAX_SUBMIT_MEMORY]],
+        'source_memory': [[isSize, MAX_SOURCE_SIZE]],
         'time_limit': [[isIntBetween, 0, MAX_SUBMIT_TIME], [isFloatBetween, 0, MAX_SUBMIT_TIME]],
         'allowedExtensions': [[isIn, *SUPPORTED_EXTENSIONS], [isList, [isIn, *SUPPORTED_EXTENSIONS]]],
         'hinter': [[isNone], [isPath]],
@@ -314,17 +326,22 @@ class Package(PackageManager):
         self._sets.append(new_set)
         return new_set
 
-    def sets(self, set_name: str, add_new: bool = False) -> 'TSet':
+    def sets(self, set_name: str = None, add_new: bool = False) -> 'TSet' or List['TSet']:
         """
         It returns the set with the name `set_name` if it exists, otherwise it raises an error
+        If set_name is None, it returns list of all sets.
 
-        :param set_name: The name of the set you want to get
+        :param set_name: The name of the set you want to get (if none it returns all sets)
         :type set_name: str
         :param add_new: If True, it will create a new set directory if it doesn't exist, defaults to False
         :type add_new: bool (optional)
 
-        :return: The set with the name set_name
+        :return: The set with the name set_name, or a list of all sets
+        :rtype: TSet or List[TSet]
         """
+        if set_name is None:
+            return self._sets
+
         for i in self._sets:
             if i['name'] == set_name:
                 return i
@@ -458,17 +475,21 @@ class TSet(PackageManager):
                 name_dict = {'name': i}
                 self._tests.append(TestF(self._path, name_dict, self._test_settings))
 
-    def tests(self, test_name: str, add_new: bool = False) -> 'TestF':
+    def tests(self, test_name: str = None, add_new: bool = False) -> 'TestF' or List['TestF']:
         """
         It returns a test object with the given name, if it exists, or creates a new one if it doesn't
+        If no name is given, it returns a list of all the tests.
 
-        :param test_name: The name of the test
+        :param test_name: The name of the test, if None, it returns a list of all the tests, defaults to None
         :type test_name: str
         :param add_new: if True, then if the test is not found, it will be created, defaults to False
         :type add_new: bool (optional)
 
-        :return: A TestF object
+        :return: A TestF object or a list of TestF objects
+        :rtype: TestF or List[TestF]
         """
+        if test_name is None:
+            return self._tests
         for i in self._tests:
             if i['name'] == test_name:
                 return i
@@ -577,7 +598,7 @@ class TSet(PackageManager):
         search = False
         for i in self._tests:
             if i['name'] == test_name:
-                self._move_chosen_test(i,  to_set)
+                self._move_chosen_test(i, to_set)
                 self._move_config(to_set, test_name)
                 search |= True
                 return

@@ -1,0 +1,98 @@
+{
+  "files": {
+    "console_stderr.txt": {
+      "path": "console_stderr.txt",
+      "reference": "85be07631da241c5b426ce6301838d12"
+    },
+    "console_stdout.txt": {
+      "path": "console_stdout.txt",
+      "reference": "f71bf7468b5043a3a0272c3f4c952a1f"
+    },
+    "results/results.yaml": {
+      "path": "results/results.yaml",
+      "reference": "e0711d416fde492aa0250e1b5c0012b5"
+    },
+    "results/test2/log.zip": {
+      "path": "results/test2/log.zip",
+      "reference": "c634a47effdb46e1a888e8aac50a7b0e"
+    },
+    "results/test2/satori/logs/log.zip": {
+      "path": "results/test2/satori/logs/log.zip",
+      "reference": "67d587af022b4f798de7ba57313d434c"
+    },
+    "results/test3/log.zip": {
+      "path": "results/test3/log.zip",
+      "reference": "7d4ee6b12ab84b759cff96c57f711e5f"
+    },
+    "results/test3/satori/logs/log.zip": {
+      "path": "results/test3/satori/logs/log.zip",
+      "reference": "905b3aadc50c4d069de9be65630b0bc5"
+    }
+  },
+  "id": "6d2ad63fc90e4756b065fbc9f176f966",
+  "limits": {
+    "cpus": 4,
+    "cpus_offset": 0,
+    "image": "12884901888b",
+    "memory": "4294967296b",
+    "network": false,
+    "pids": 256,
+    "storage": "1073741824b",
+    "swap": "0b",
+    "time": "41.0s",
+    "workspace": "1073741824b"
+  },
+  "result": 0,
+  "stats": {
+    "cpu": {
+      "system": "0.92s",
+      "usage": "4.314861s",
+      "user": "3.32s"
+    },
+    "cpus": {
+      "0": {
+        "usage": "0.908969s"
+      },
+      "1": {
+        "usage": "1.01042s"
+      },
+      "2": {
+        "usage": "1.456482s"
+      },
+      "3": {
+        "usage": "0.93899s"
+      },
+      "4": {
+        "usage": "0.0s"
+      },
+      "5": {
+        "usage": "0.0s"
+      },
+      "6": {
+        "usage": "0.0s"
+      },
+      "7": {
+        "usage": "0.0s"
+      }
+    },
+    "gpus": {},
+    "memory": {
+      "failures": 0,
+      "max_swap": "131072b",
+      "max_usage": "81891328b"
+    },
+    "pids": {
+      "failures": 0,
+      "max_usage": 8
+    },
+    "time": "7.391222s"
+  },
+  "stderr": "console_stderr.txt",
+  "stdout": "console_stdout.txt",
+  "tags": [
+    "cpu:xeon e3-1270 v5",
+    "kolejka.matinf.uj.edu.pl",
+    "cpus:8",
+    "cpu:intel"
+  ]
+}
