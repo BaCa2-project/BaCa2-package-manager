@@ -140,6 +140,8 @@ def isPath(val):
     """
     if val is None:
         return False
+    elif isinstance(val, Path) and val.exists():
+        return True
     try:
         val = Path(val)
         if val.exists():

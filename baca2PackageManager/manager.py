@@ -148,6 +148,14 @@ class PackageManager:
             with open(self._path / filename, 'w') as f:
                 pass
 
+    def __iter__(self):
+        """
+        It returns an iterator for the settings dictionary
+
+        :return: The iterator for the settings dictionary
+        """
+        return iter(self._settings.items())
+
 
 class Package(PackageManager):
     """
@@ -633,7 +641,9 @@ class TestF(PackageManager):
         'memory_limit': [[isNone], [isSize, Package.MAX_SUBMIT_MEMORY]],
         'time_limit': [[isNone], [isIntBetween, 0, Package.MAX_SUBMIT_TIME],
                        [isFloatBetween, 0, Package.MAX_SUBMIT_TIME]],
-        'points': [[isInt], [isFloat]]
+        'points': [[isInt], [isFloat]],
+        'input': [[isNone], [isPath]],
+        'output': [[isNone], [isPath]],
     }
     """
        Validation for ``TestF`` settings.
@@ -643,6 +653,8 @@ class TestF(PackageManager):
         * ``points``: maximum amount of points to earn in test
         * ``memory_limit``: is a memory limit for test
         * ``time_limit``: is a time limit for test
+        * ``input``: is a path or None value to actual input
+        * ``output``: is a path or None value to actual output
        """
 
     def __init__(self, path: Path, additional_settings: dict or Path, default_settings: dict):
@@ -659,6 +671,12 @@ class TestF(PackageManager):
         :type default_settings: dict
         """
         super().__init__(path, additional_settings, default_settings)
+        input_file = self._path / (self._settings['name'] + '.in')
+        if input_file.is_file():
+            self._settings['input'] = input_file
+        output_file = self._path / (self._settings['name'] + '.out')
+        if output_file.is_file():
+            self._settings['output'] = output_file
 
     def _rename_files(self, old_name, new_name):
         """

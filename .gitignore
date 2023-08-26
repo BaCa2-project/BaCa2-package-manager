@@ -297,3 +297,5 @@ cython_debug/
 tests/test_packages/**/.build/kolejka/common/kolejka-client
 tests/test_packages/**/.build/kolejka/common/kolejka-judge
 tests/test_packages/**/.build/kolejka/kolejka.conf
+
+.pypirc
