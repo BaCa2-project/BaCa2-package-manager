@@ -248,14 +248,29 @@ class Package(PackageManager):
 
         return build_dir
 
-    def check_build(self, build_name: str):
+    def build_path(self, build_name: str) -> Path:
+        """
+        It returns the path to the build
+
+        :param build_name: The name of the build
+        :type build_name: str
+
+        :return: The path to the build
+        :rtype: Path
+        """
+        return self.commit_path / '.build' / build_name
+
+    def check_build(self, build_name: str) -> bool:
         """
         It checks if the build exists
 
         :param build_name: The name of the build
         :type build_name: str
+
+        :return: True if the build exists, False otherwise
+        :rtype: bool
         """
-        build_dir = self.commit_path / '.build' / build_name
+        build_dir = self.build_path(build_name)
 
         if not build_dir.is_dir():
             return False
