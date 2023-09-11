@@ -438,7 +438,7 @@ class TSet(PackageManager):
         """
     #: Default values for set settings
     DEFAULT_SETTINGS = {
-        'name': 'set0',
+        'name': '_unnamed',
         'weight': 10,
         'points': 0,
         'memory_limit': '512M',
@@ -462,6 +462,8 @@ class TSet(PackageManager):
         if not config_path.is_file():
             config_path = {}
         super().__init__(path, config_path, TSet.DEFAULT_SETTINGS)
+        if self['name'] == '_unnamed':
+            self['name'] = path.name
         self._tests = []
         self._test_settings = {
             'name': '0',
