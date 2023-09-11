@@ -224,6 +224,8 @@ class Package(PackageManager):
         self._commit = commit
 
         config_path = self.commit_path / 'config.yml'
+        if not config_path.is_file():
+            config_path = self.commit_path / 'config.yaml'
         sets_path = self.commit_path / 'tests'
         super().__init__(path, config_path, Package.DEFAULT_SETTINGS)
         self._sets = []
@@ -455,6 +457,10 @@ class TSet(PackageManager):
         :type path: Path
         """
         config_path = path / 'config.yml'
+        if not config_path.is_file():
+            config_path = path / 'config.yaml'
+        if not config_path.is_file():
+            config_path = {}
         super().__init__(path, config_path, TSet.DEFAULT_SETTINGS)
         self._tests = []
         self._test_settings = {

@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='baca2-package-manager',
-    version='0.2.5',
+    version='0.2.6',
     author='Baca2 Team',
     author_email='bartosz.deptula@student.uj.edu.pl',
     description='A package manager for Baca2 project',
