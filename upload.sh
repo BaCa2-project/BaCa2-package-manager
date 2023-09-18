@@ -3,7 +3,7 @@ rm -r dist
 mkdir dist
 
 echo "upgrade twine"
-pip install --upgrade twine
+#pip install --upgrade twine
 
 echo "install package"
 pip install .
