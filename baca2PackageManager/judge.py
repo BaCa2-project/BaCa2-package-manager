@@ -56,14 +56,24 @@ class JudgeManager:
     def nodes(self) -> list[JudgeNodeBase]:
         return [key for key in self.graph]
 
+    def get_node_by_name(self, name: str) -> JudgeNodeBase:
+        for node in self.nodes:
+            if node.name == name:
+                return node
+        else:
+            raise ValueError(f"No node with name {name}.")
+
     @classmethod
-    def from_dict(cls, dct: dict[JudgeNodeBase, dict[JudgeVerdict, JudgeNodeBase]]) -> 'JudgeManager':
+    def from_dict(cls,
+                  dct: dict[JudgeNodeBase, dict[JudgeVerdict, JudgeNodeBase]],
+                  start_node: JudgeNodeBase) -> 'JudgeManager':
         out = cls()
         for node in dct:
             out.add_node(node)
         for from_node, adj_list in dct.items():
             for verdict, to_node in adj_list.items():
                 out.add_connection(from_node, to_node, verdict)
+        out.set_start_node(start_node)
         return out
 
     def set_start_node(self, node: JudgeNodeBase):
@@ -87,8 +97,6 @@ class JudgeManager:
         adj_list[with_verdict] = to_node
 
     def remove_node(self, node: JudgeNodeBase):
-        if len(node.name) > 0 and node.name[0] == '!':
-            raise ValueError("Cannot delete special-purpose nodes.")
         del self.graph[node]
         for key in self.graph:
             adj_list = self.graph[key]
@@ -117,10 +125,15 @@ class JudgeManager:
         return node.start(*args, **kwargs)
 
     def receive(self, node: JudgeNodeBase | None = None, *args, **kwargs) -> JudgeNodeBase | None:
+        """
+        :returns: if node is not None: next node according to the graph, else: start_node
+        """
+        if node is None:
+            if self.start_node is None:
+                raise ValueError("Start Node is not set.")
+            return self.start_node
         if isinstance(node, EndNode):
             raise TypeError("'node' cannot be an EndNode")
-        if node is None:
-            node = self.start_node
         adj_list = self.graph[node]
         verdict = node.receive(*args, **kwargs)
         return adj_list.get(verdict)
