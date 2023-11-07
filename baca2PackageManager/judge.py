@@ -1,5 +1,6 @@
+from __future__ import annotations
+from typing import Self, Any, Optional
 
-from typing import Any
 from enum import Enum
 from abc import ABC, abstractmethod
 
@@ -39,34 +40,67 @@ class EndNode(JudgeNodeBase):
         self.meaning = end_node_meaning
 
     def start(self, *args, **kwargs) -> Any:
-        raise RuntimeError("EndNode.start should never be called")
+        pass
 
     def receive(self, *args, **kwargs) -> JudgeVerdict:
         return self.meaning
 
 
+class JudgeNodeError(ValueError):
+    pass
+
+
+class JudgeGraphIntegrityReport:
+    def __init__(self,
+                 unreachable_nodes: list[JudgeNodeBase],
+                 cannot_reach_end: list[JudgeNodeBase],
+                 wrong_connections: list[JudgeNodeBase],
+                 has_end_nodes: bool):
+        self.unreachable_nodes = unreachable_nodes
+        self.cannot_reach_end = cannot_reach_end
+        self.wrong_connections = wrong_connections
+        self.has_end_nodes = has_end_nodes
+
+    @property
+    def no_errors(self):
+        return not (
+                self.unreachable_nodes or
+                self.cannot_reach_end or
+                self.wrong_connections or
+                not self.has_end_nodes)
+
+
 class JudgeManager:
 
     def __init__(self):
-        default_end_node = EndNode("!SUCCESS", JudgeVerdict.OK)
-        self.graph: dict[JudgeNodeBase, dict[JudgeVerdict, JudgeNodeBase]] = {default_end_node: {}}
-        self.start_node: JudgeNodeBase = None
+        self.graph: dict[JudgeNodeBase, dict[JudgeVerdict, JudgeNodeBase]] = {}
+        self._start_node: JudgeNodeBase = None
 
     @property
     def nodes(self) -> list[JudgeNodeBase]:
-        return [key for key in self.graph]
+        return list(self.graph.keys())
 
     def get_node_by_name(self, name: str) -> JudgeNodeBase:
         for node in self.nodes:
             if node.name == name:
                 return node
         else:
-            raise ValueError(f"No node with name {name}.")
+            raise JudgeNodeError(f"No node with name {name}.")
+
+    def set_start_node(self, node: JudgeNodeBase):
+        if node not in self.graph:
+            raise KeyError(repr(node))
+        self._start_node = node
+
+    def get_start_node(self) -> JudgeNodeBase:
+        if self._start_node is None:
+            raise JudgeNodeError("Start_node is not set.")
+        return self._start_node
 
     @classmethod
     def from_dict(cls,
                   dct: dict[JudgeNodeBase, dict[JudgeVerdict, JudgeNodeBase]],
-                  start_node: JudgeNodeBase) -> 'JudgeManager':
+                  start_node: JudgeNodeBase) -> Self:
         out = cls()
         for node in dct:
             out.add_node(node)
@@ -76,16 +110,9 @@ class JudgeManager:
         out.set_start_node(start_node)
         return out
 
-    def set_start_node(self, node: JudgeNodeBase):
-        if node not in self.graph:
-            raise KeyError(repr(node))
-        self.start_node = node
-
-    def add_node(self, node: JudgeNodeBase) -> None:
-        if len(node.name) > 0 and node.name[0] == '!':
-            raise EncodingWarning("'!' character at the beginning is reserved for special-purpose nodes.")
+    def add_node(self, node: JudgeNodeBase):
         if node in self.graph:
-            raise ValueError(f"Node with name '{node.name}' has already been added.")
+            raise JudgeNodeError(f"Node with name '{node.name}' has already been added.")
         self.graph[node] = {}
 
     def add_connection(self, from_node: JudgeNodeBase, to_node: JudgeNodeBase, with_verdict: JudgeVerdict):
@@ -124,16 +151,62 @@ class JudgeManager:
             raise KeyError(repr(node))
         return node.start(*args, **kwargs)
 
-    def receive(self, node: JudgeNodeBase | None = None, *args, **kwargs) -> JudgeNodeBase | None:
+    def receive(self, node: JudgeNodeBase | str | None = None, *args, **kwargs) -> JudgeNodeBase | None:
         """
         :returns: if node is not None: next node according to the graph, else: start_node
         """
         if node is None:
-            if self.start_node is None:
-                raise ValueError("Start Node is not set.")
-            return self.start_node
+            return self.get_start_node()
+        if isinstance(node, str):
+            node = self.get_node_by_name(node)
+
         if isinstance(node, EndNode):
             raise TypeError("'node' cannot be an EndNode")
         adj_list = self.graph[node]
         verdict = node.receive(*args, **kwargs)
         return adj_list.get(verdict)
+
+    def check_graph_integrity(self) -> JudgeGraphIntegrityReport:
+        reach_list = self._floyd_warshall()
+        end_nodes = frozenset(node for node in self.nodes if isinstance(node, EndNode))
+
+        # unreachable nodes searching
+        unreachable: list[JudgeNodeBase] = list(frozenset(self.nodes).difference(reach_list[self._start_node]))
+
+        # searching for nodes from which no EndNode is reachable
+        cannot_reach_end: list[JudgeNodeBase] = []
+        for node in self.nodes:
+            if not end_nodes.intersection(reach_list[node]):
+                cannot_reach_end.append(node)
+
+        # checking for valid connections
+        wrong_connections: list[JudgeNodeBase] = []
+        for node in self.nodes:
+            tmp = frozenset(self.graph[node].keys())
+            if not (
+                    {JudgeVerdict.OK, JudgeVerdict.FAIL}.issubset(tmp)
+                    or {JudgeVerdict.OK, JudgeVerdict.INCONCLUSIVE}.issubset(tmp)
+                    or isinstance(node, EndNode)
+            ):
+                wrong_connections.append(node)
+
+        # check for end nodes
+        has_end_nodes = len(end_nodes) != 0
+
+        return JudgeGraphIntegrityReport(unreachable, cannot_reach_end, wrong_connections, has_end_nodes)
+
+    def _floyd_warshall(self) -> dict[JudgeNodeBase, frozenset[JudgeNodeBase]]:
+        node_list = self.nodes  # for performance
+        nl_length = len(node_list)
+        visit_matrix = [[j in self.graph[i].values() or i is j for j in node_list] for i in node_list]
+
+        for k in range(nl_length):
+            for i in range(nl_length):
+                for j in range(nl_length):
+                    visit_matrix[i][j] = visit_matrix[i][j] or (visit_matrix[i][k] and visit_matrix[k][j])
+
+        out: dict[JudgeNodeBase, list[JudgeNodeBase]] = {}
+        for index, node in enumerate(node_list):
+            out[node] = frozenset(node_list[i] for i, b in enumerate(visit_matrix[index]) if b)
+
+        return out
