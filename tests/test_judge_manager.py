@@ -2,7 +2,7 @@
 import unittest as ut
 from typing import Any
 
-import baca2PackageManager.judge as judge
+import baca2PackageManager.judge_manager as judge
 
 
 class JNAlpha(judge.JudgeNodeBase):
