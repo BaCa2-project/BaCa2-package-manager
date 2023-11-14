@@ -1,3 +1,7 @@
+echo "clear dist directory"
+rmdir /S /Q dist
+mkdir dist
+
 echo "upgrade twine"
 pip install --upgrade twine
 
