@@ -4,9 +4,11 @@ from typing import Self, Any
 from enum import Enum
 from abc import ABC, abstractmethod
 
+import yaml
+
 
 class JudgeVerdict(Enum):
-    """Verdict of tests"""
+    """Judge Verdict"""
     OK = 0
     FAIL = 1
     INCONCLUSIVE = 2
@@ -31,12 +33,12 @@ class JudgeNodeBase(ABC):
         self._id = name
 
     def __hash__(self):
-        return hash(self.name)
+        return super().__hash__()
 
     @property
     def name(self) -> str:
         """
-        Returns a string used for identification purposes and hashing
+        Returns a string used for identification purposes
 
         :return: a string used for identification purposes
         """
@@ -61,6 +63,13 @@ class JudgeNodeBase(ABC):
         :return: a verdict used for traversing the decision graph in JudgeMaster
         """
         ...
+
+    def serialise(self) -> str:
+        return yaml.dump(self)
+
+    @classmethod
+    def unpack(cls, yaml_data: str) -> Self:
+        return yaml.load(yaml_data, Loader=yaml.Loader)
 
 
 class EndNode(JudgeNodeBase):
@@ -343,3 +352,10 @@ class JudgeManager:
             out[node] = frozenset(node_list[i] for i, b in enumerate(visit_matrix[index]) if b)
 
         return out
+
+    def serialise(self) -> str:
+        return yaml.dump(self)
+
+    @classmethod
+    def unpack(cls, yaml_data: str) -> Self:
+        return yaml.load(yaml_data, Loader=yaml.Loader)

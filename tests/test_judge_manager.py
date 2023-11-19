@@ -1,5 +1,6 @@
 
 import unittest as ut
+from copy import deepcopy
 from typing import Any
 
 import baca2PackageManager.judge_manager as judge
@@ -172,3 +173,8 @@ class GeneralTest(ut.TestCase):
         self.assertEqual(frozenset(report.unreachable_nodes), frozenset({self.a2}))
         self.assertEqual(frozenset(report.cannot_reach_end), frozenset({self.a, self.b, self.a2, self.c}))
         self.assertEqual(frozenset(report.wrong_connections), frozenset({self.b, self.c}))
+
+    def test_node_yaml_serialisation(self):
+        q = deepcopy(self.a).serialise()
+        q = judge.JudgeNodeBase.unpack(q)
+        self.assertEqual(vars(self.a), vars(q))
