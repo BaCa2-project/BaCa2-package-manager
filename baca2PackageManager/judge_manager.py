@@ -33,7 +33,7 @@ class JudgeNodeBase(ABC):
         self._id = name
 
     def __hash__(self):
-        return super().__hash__()
+        return hash(self.name)
 
     @property
     def name(self) -> str:
@@ -70,6 +70,11 @@ class JudgeNodeBase(ABC):
     @classmethod
     def unpack(cls, yaml_data: str) -> Self:
         return yaml.load(yaml_data, Loader=yaml.Loader)
+
+    def __eq__(self, other):
+        if isinstance(other, JudgeNodeBase):
+            return self.name == other.name
+        return False
 
 
 class EndNode(JudgeNodeBase):
@@ -141,7 +146,7 @@ class JudgeManager:
     """Manages the decision graph of submit checking"""
 
     def __init__(self):
-        self.graph: dict[JudgeNodeBase, dict[JudgeVerdict, JudgeNodeBase]] = {}
+        self.graph: dict[str, dict[JudgeVerdict, JudgeNodeBase]] = {}
         self._start_node: JudgeNodeBase = None
 
     @property

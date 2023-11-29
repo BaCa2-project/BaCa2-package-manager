@@ -178,3 +178,40 @@ class GeneralTest(ut.TestCase):
         q = deepcopy(self.a).serialise()
         q = judge.JudgeNodeBase.unpack(q)
         self.assertEqual(vars(self.a), vars(q))
+
+    def test_node_yaml_serialisation_to_file(self):
+        with open('serialization_test.yaml', 'tw') as f:
+            q = deepcopy(self.a).serialise()
+            f.write(q)
+
+        with open('serialization_test.yaml', 'tr') as f:
+            q = f.read()
+            q = judge.JudgeNodeBase.unpack(q)
+        self.assertEqual(vars(self.a), vars(q))
+
+    def test_graph_yaml_serialisation_to_file(self):
+        graph = judge.JudgeManager.from_dict({self.a: {judge.JudgeVerdict.OK: self.a}}, self.a)
+
+        with open('serialization_graph_test.yaml', 'tw') as f:
+            q = deepcopy(graph).serialise()
+            f.write(q)
+
+        with open('serialization_graph_test.yaml', 'tr') as f:
+            q = f.read()
+            q = judge.JudgeManager.unpack(q)
+        self.assertEqual(len(q.graph), 1)
+        self.assertEqual(q.graph[self.a][judge.JudgeVerdict.OK], self.a)
+
+    def test_complex_graph_yaml_serialisation_to_file(self):
+        graph = self._from_dict_func()[1]
+
+        with open('serialization_complex_graph_test.yaml', 'tw') as f:
+            q = deepcopy(graph).serialise()
+            f.write(q)
+
+        with open('serialization_complex_graph_test.yaml', 'tr') as f:
+            q = f.read()
+            q = judge.JudgeManager.unpack(q)
+        self.assertEqual(len(q.graph), 1)
+        self.assertEqual(q.graph[self.a][judge.JudgeVerdict.OK], self.a)
+
