@@ -8,7 +8,9 @@ from typing import List
 from yaml import safe_load, dump
 from re import match
 
-from .validators import isAny, isNone, isInt, isIntBetween, isFloat, isFloatBetween, isStr, is_, isIn, isShorter, \
+from .judge_manager import JudgeManager
+from .validators import isAny, isNone, isInt, isIntBetween, isFloat, isFloatBetween, isStr, is_, \
+    isIn, isShorter, \
     isDict, isPath, isSize, isList, memory_converting, valid_memory_size, isBool
 from .consts import SUPPORTED_EXTENSIONS, BASE_DIR
 from .manager_exceptions import NoTestFound, NoSetFound, TestExistError
@@ -174,7 +176,8 @@ class Package(PackageManager):
         'memory_limit': [[isSize, MAX_SUBMIT_MEMORY]],
         'source_memory': [[isSize, MAX_SOURCE_SIZE]],
         'time_limit': [[isIntBetween, 0, MAX_SUBMIT_TIME], [isFloatBetween, 0, MAX_SUBMIT_TIME]],
-        'allowedExtensions': [[isIn, *SUPPORTED_EXTENSIONS], [isList, [isIn, *SUPPORTED_EXTENSIONS]]],
+        'allowedExtensions': [[isIn, *SUPPORTED_EXTENSIONS],
+                              [isList, [isIn, *SUPPORTED_EXTENSIONS]]],
         'hinter': [[isNone], [isPath]],
         'checker': [[isNone], [isPath]],
         'test_generator': [[isNone], [isPath]],
@@ -212,6 +215,8 @@ class Package(PackageManager):
         'cpus': 1
     }
 
+    # TODO: Add auto-discovery of judge manager files
+
     def __init__(self, path: Path, commit: str) -> None:
         """
         It takes a path to a folder, and then it creates a list of all the subfolders in that folder, and then it creates a
@@ -229,8 +234,19 @@ class Package(PackageManager):
         sets_path = self.commit_path / 'tests'
         super().__init__(path, config_path, Package.DEFAULT_SETTINGS)
         self._sets = []
+        self.judge_manager = None
         for i in [x[0].replace(str(sets_path) + '\\', '') for x in walk(sets_path)][1:]:
             self._sets.append(TSet(sets_path / i))
+
+    def set_judge_manager(self, judge_manager: JudgeManager):
+        self.judge_manager = judge_manager
+
+    @property
+    def judge_manager_path(self) -> Path:
+        jm_path = self.commit_path / 'sequence.judge'
+        if not jm_path.is_file():
+            raise FileNotFoundError(f'Judge manager file not found in {self.commit_path}')
+        return jm_path
 
     def prepare_build(self, build_name: str):
         """

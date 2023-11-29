@@ -289,24 +289,21 @@ class JudgeManager:
             raise KeyError(repr(node))
         return node.start(*args, **kwargs)
 
-    def receive(self, node: JudgeNodeBase | str | None = None, *args, **kwargs) -> JudgeNodeBase | None:
+    def advance(self, node: JudgeNodeBase | str, verdict: JudgeVerdict) -> JudgeNodeBase:
         """
-        Invokes the 'receive' method on the provided node and advances the decision graph accordingly.
+        Returns the next node in the graph after the provided node with the provided verdict.
 
-        :return: if node is not None: next node according to the graph, else: start_node
-        :raise KeyError: if the given node does not belong to the graph
-        :raise TypeError: if the given node is an EndNode
+        :param node: the node from which the next node should be found
+        :param verdict: the verdict of the edge that should be used
+        :return: the next node
+        :raise KeyError: if the node or the edge do not exist
         """
-        if node is None:
-            return self.get_start_node()
         if isinstance(node, str):
             node = self.get_node_by_name(node)
 
-        if isinstance(node, EndNode):
-            raise TypeError("'node' cannot be an EndNode")
-        adj_list = self.graph[node]
-        verdict = node.receive(*args, **kwargs)
-        return adj_list.get(verdict)
+        if node.name not in self.graph:
+            raise KeyError(repr(node))
+        return self.graph[node.name][verdict]
 
     def check_graph_integrity(self) -> JudgeGraphIntegrityReport:
         """
