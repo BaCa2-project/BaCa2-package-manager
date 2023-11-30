@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='baca2-package-manager',
-    version='0.2.11',
+    version='0.2.12',
     author='Baca2 Team',
     author_email='bartosz.deptula@student.uj.edu.pl',
     description='A package manager for Baca2 project',
@@ -15,7 +15,7 @@ setuptools.setup(
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
     ],
-    python_requires='>=3.10',
+    python_requires='>=3.11',
     install_requires=[
         'pyyaml',
     ]

@@ -9,7 +9,7 @@ echo "install package"
 pip install .
 
 echo "build package"
-python setup.py sdist bdist_wheel
+py -m build --wheel
 
 echo "upload package"
 twine.exe upload dist/* --config-file .pypirc
