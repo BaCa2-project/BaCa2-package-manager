@@ -1,2 +1,0 @@
-Result OK on test test2.
-Result OK on test test3.

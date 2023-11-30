@@ -1,10 +1,8 @@
-name: set0
-memory_limit: 10M
-time_limit: 10
-weight: 10
-points: 1
 checker: null
 makefile: null
+memory_limit: 10M
+name: set0
+points: 1
 test_generator: null
 tests:
   test2:
@@ -17,3 +15,5 @@ tests:
     name: '3'
     points: 0.5
     time_limit: 9
+time_limit: 10
+weight: 10

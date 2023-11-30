@@ -4,9 +4,11 @@ from typing import Self, Any
 from enum import Enum
 from abc import ABC, abstractmethod
 
+import pickle
+
 
 class JudgeVerdict(Enum):
-    """Verdict of tests"""
+    """Judge Verdict"""
     OK = 0
     FAIL = 1
     INCONCLUSIVE = 2
@@ -33,10 +35,15 @@ class JudgeNodeBase(ABC):
     def __hash__(self):
         return hash(self.name)
 
+    def __eq__(self, other):
+        if not isinstance(other, JudgeNodeBase):
+            return False
+        return self.name == other.name
+
     @property
     def name(self) -> str:
         """
-        Returns a string used for identification purposes and hashing
+        Returns a string used for identification purposes
 
         :return: a string used for identification purposes
         """
@@ -61,6 +68,16 @@ class JudgeNodeBase(ABC):
         :return: a verdict used for traversing the decision graph in JudgeMaster
         """
         ...
+
+    def serialise(self) -> bytes:
+        return pickle.dumps(self)
+
+    @classmethod
+    def unpack(cls, binary_data: bytes) -> Self:
+        tmp = pickle.loads(binary_data)
+        if not isinstance(tmp, cls):
+            raise TypeError(f"Unpacked object is not of type {cls.__name__}")
+        return tmp
 
 
 class EndNode(JudgeNodeBase):
@@ -94,6 +111,11 @@ class EndNode(JudgeNodeBase):
 
 
 class JudgeNodeError(ValueError):
+    """Exception class used by JudgeMaster"""
+    pass
+
+
+class EndNodeError(JudgeNodeError):
     """Exception class used by JudgeMaster"""
     pass
 
@@ -134,6 +156,11 @@ class JudgeManager:
     def __init__(self):
         self.graph: dict[JudgeNodeBase, dict[JudgeVerdict, JudgeNodeBase]] = {}
         self._start_node: JudgeNodeBase = None
+
+    def __eq__(self, other):
+        if not isinstance(other, JudgeManager):
+            return False
+        return self.graph == other.graph and self._start_node == other._start_node
 
     @property
     def nodes(self) -> list[JudgeNodeBase]:
@@ -275,24 +302,20 @@ class JudgeManager:
             raise KeyError(repr(node))
         return node.start(*args, **kwargs)
 
-    def receive(self, node: JudgeNodeBase | str | None = None, *args, **kwargs) -> JudgeNodeBase | None:
+    def advance(self, node: JudgeNodeBase | str, verdict: JudgeVerdict) -> JudgeNodeBase | None:
         """
-        Invokes the 'receive' method on the provided node and advances the decision graph accordingly.
+        Advances the decision graph according to the provided verdict.
 
-        :return: if node is not None: next node according to the graph, else: start_node
+        :return: Next node according to the graph, if there is no edge for provided verdict: None
         :raise KeyError: if the given node does not belong to the graph
-        :raise TypeError: if the given node is an EndNode
+        :raise EndNodeError: if the given node is an EndNode
         """
-        if node is None:
-            return self.get_start_node()
         if isinstance(node, str):
             node = self.get_node_by_name(node)
 
         if isinstance(node, EndNode):
-            raise TypeError("'node' cannot be an EndNode")
-        adj_list = self.graph[node]
-        verdict = node.receive(*args, **kwargs)
-        return adj_list.get(verdict)
+            raise EndNodeError("'node' cannot be an EndNode")
+        return self.graph[node].get(verdict)
 
     def check_graph_integrity(self) -> JudgeGraphIntegrityReport:
         """
@@ -343,3 +366,13 @@ class JudgeManager:
             out[node] = frozenset(node_list[i] for i, b in enumerate(visit_matrix[index]) if b)
 
         return out
+
+    def serialise(self) -> bytes:
+        return pickle.dumps(self)
+
+    @classmethod
+    def unpack(cls, binary_data: str) -> Self:
+        tmp = pickle.loads(binary_data)
+        if not isinstance(tmp, cls):
+            raise TypeError(f"Unpacked object is not of type {cls.__name__}")
+        return tmp
