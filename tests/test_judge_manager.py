@@ -1,5 +1,6 @@
-
 import unittest as ut
+
+import os
 from copy import deepcopy
 from typing import Any
 
@@ -43,6 +44,16 @@ class GeneralTest(ut.TestCase):
         self.b = JNBeta('b')
         self.c = JNTheta('c')
         self.end = judge.EndNode('END', judge.JudgeVerdict.OK)
+
+    def tearDown(self) -> None:
+        files_to_delete = ['serialization_test.bin',
+                           'serialization_graph_test.bin',
+                           'serialization_complex_graph_test.bin']
+        for file in files_to_delete:
+            try:
+                os.remove(file)
+            except FileNotFoundError:
+                pass
 
     def _from_dict_func(self) -> tuple[dict, judge.JudgeManager]:
         default = {
@@ -105,18 +116,17 @@ class GeneralTest(ut.TestCase):
         manager.add_connection(self.b, self.a, judge.JudgeVerdict.FAIL)
         self.assertEqual(manager.send(self.a, True), None)
         self.assertRaises(KeyError, manager.send, self.a2)
-        self.assertRaises(ValueError, manager.receive)
+        self.assertRaises(judge.EndNodeError, manager.advance, self.end, judge.JudgeVerdict.OK)
         manager.set_start_node(self.a)
-        current = manager.receive()
-        self.assertEqual(current, manager._start_node)
-        current = manager.receive(current, True)
+        current = manager.get_start_node()
+        current = manager.advance(current, judge.JudgeVerdict.OK)
         self.assertEqual(current, self.b)
-        current = manager.receive(current, True)
+        current = manager.advance(current, judge.JudgeVerdict.FAIL)
         self.assertEqual(current, self.a)
-        current = manager.receive(current, True)
-        current = manager.receive(current, False)
+        current = manager.advance(current, judge.JudgeVerdict.OK)
+        current = manager.advance(current, judge.JudgeVerdict.OK)
         self.assertEqual(current, self.end)
-        self.assertRaises(TypeError, manager.receive, current)
+        self.assertRaises(judge.EndNodeError, manager.advance, current, judge.JudgeVerdict.OK)
 
     def test_check_integrity_simple(self):
         _, manager = self._from_dict_func()
@@ -180,11 +190,11 @@ class GeneralTest(ut.TestCase):
         self.assertEqual(vars(self.a), vars(q))
 
     def test_node_yaml_serialisation_to_file(self):
-        with open('serialization_test.yaml', 'tw') as f:
+        with open('serialization_test.bin', 'wb') as f:
             q = deepcopy(self.a).serialise()
             f.write(q)
 
-        with open('serialization_test.yaml', 'tr') as f:
+        with open('serialization_test.bin', 'rb') as f:
             q = f.read()
             q = judge.JudgeNodeBase.unpack(q)
         self.assertEqual(vars(self.a), vars(q))
@@ -192,26 +202,25 @@ class GeneralTest(ut.TestCase):
     def test_graph_yaml_serialisation_to_file(self):
         graph = judge.JudgeManager.from_dict({self.a: {judge.JudgeVerdict.OK: self.a}}, self.a)
 
-        with open('serialization_graph_test.yaml', 'tw') as f:
+        with open('serialization_graph_test.bin', 'wb') as f:
             q = deepcopy(graph).serialise()
             f.write(q)
 
-        with open('serialization_graph_test.yaml', 'tr') as f:
+        with open('serialization_graph_test.bin', 'rb') as f:
             q = f.read()
             q = judge.JudgeManager.unpack(q)
         self.assertEqual(len(q.graph), 1)
         self.assertEqual(q.graph[self.a][judge.JudgeVerdict.OK], self.a)
 
     def test_complex_graph_yaml_serialisation_to_file(self):
-        graph = self._from_dict_func()[1]
+        _, graph = self._from_dict_func()
 
-        with open('serialization_complex_graph_test.yaml', 'tw') as f:
+        with open('serialization_complex_graph_test.bin', 'wb') as f:
             q = deepcopy(graph).serialise()
             f.write(q)
 
-        with open('serialization_complex_graph_test.yaml', 'tr') as f:
+        with open('serialization_complex_graph_test.bin', 'rb') as f:
             q = f.read()
             q = judge.JudgeManager.unpack(q)
-        self.assertEqual(len(q.graph), 1)
-        self.assertEqual(q.graph[self.a][judge.JudgeVerdict.OK], self.a)
 
+        self.assertEqual(q.graph, graph.graph)
