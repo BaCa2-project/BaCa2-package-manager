@@ -66,6 +66,20 @@ class BrokerToBaca:
         return cls(**data)
 
 
+@dataclass
+class BrokerToBacaError:
+    pass_hash: str
+    submit_id: str
+    error: str
+
+    def serialize(self):
+        return asdict(self)
+
+    @classmethod
+    def parse(cls, data: dict):
+        return cls(**data)
+
+
 def create_broker_submit_id(course_name: str, submit_id: int) -> str:
     return f'{course_name}___{submit_id}'
 
