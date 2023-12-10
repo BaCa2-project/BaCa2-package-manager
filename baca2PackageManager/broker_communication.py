@@ -84,8 +84,8 @@ def create_broker_submit_id(course_name: str, submit_id: int) -> str:
     return f'{course_name}___{submit_id}'
 
 
-def split_broker_submit_id(broker_submit_id: str) -> (str, int):
-    r = re.compile(r'(\w+?)___([0-9]+)')
+def split_broker_submit_id(broker_submit_id: str) -> tuple[str, int]:
+    r = re.compile(r'([-A-Za-z0-9._]+?)___([0-9]+)')
     m = re.fullmatch(r, broker_submit_id)
     course_name = m.group(1)
     submit_id = int(m.group(2))
