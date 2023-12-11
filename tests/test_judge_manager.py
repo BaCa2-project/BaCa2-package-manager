@@ -48,7 +48,11 @@ class GeneralTest(ut.TestCase):
     def tearDown(self) -> None:
         files_to_delete = ['serialization_test.bin',
                            'serialization_graph_test.bin',
-                           'serialization_complex_graph_test.bin']
+                           'serialization_complex_graph_test.bin',
+                           'serialization_test.yaml',
+                           'serialization_graph_test.yaml',
+                           'serialization_complex_graph_test.yaml',
+                           ]
         for file in files_to_delete:
             try:
                 os.remove(file)

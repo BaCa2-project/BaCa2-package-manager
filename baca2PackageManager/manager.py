@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import shutil
 from copy import deepcopy
 from pathlib import Path
 from os import remove, replace, walk, mkdir, rename, listdir
 from shutil import rmtree, copytree
-from typing import List
+from typing import List, Self
 
 from yaml import safe_load, dump
 from re import match
@@ -13,9 +15,11 @@ from .validators import isAny, isNone, isInt, isIntBetween, isFloat, isFloatBetw
     isIn, isShorter, \
     isDict, isPath, isSize, isList, memory_converting, valid_memory_size, isBool
 from .consts import SUPPORTED_EXTENSIONS, BASE_DIR
-from .manager_exceptions import NoTestFound, NoSetFound, TestExistError
+from .manager_exceptions import NoTestFound, NoSetFound, TestExistError, FileAlreadyExist
 
 __all__ = ['Package', 'TSet', 'TestF']
+
+from .zipper import Zip
 
 
 def merge_settings(default: dict, to_add: dict) -> dict:
@@ -164,6 +168,7 @@ class Package(PackageManager):
     It's a class that represents a package.
     """
 
+    
     #: Largest file acceptable to upload
     MAX_SUBMIT_MEMORY = '10G'
     #: Largest acceptable submit time
@@ -217,7 +222,7 @@ class Package(PackageManager):
 
     # TODO: Add auto-discovery of judge manager files
 
-    def __init__(self, path: Path, commit: str) -> None:
+    def __init__(self, path: Path, commit: str, validate_pkg: bool = False) -> None:
         """
         It takes a path to a folder, and then it creates a list of all the subfolders in that folder, and then it creates a
         TSet object for each of those subfolders
@@ -237,6 +242,44 @@ class Package(PackageManager):
         self.judge_manager = None
         for i in [x[0].replace(str(sets_path) + '\\', '') for x in walk(sets_path)][1:]:
             self._sets.append(TSet(sets_path / i))
+        if validate_pkg:
+            self.check_package()
+
+    @classmethod
+    def create_from_zip(cls,
+                        path: Path,
+                        commit: str,
+                        zip_path: Path,
+                        overwrite: bool = False) -> Self:
+        """
+        It takes a path to a zip file, and then it extracts it to a folder, and then it creates a Package object from that
+        folder
+
+        :param path: Path - the path to the zip file
+        :type path: Path
+        :param commit: The commit of the package
+        :type commit: str
+        :param zip_path: The path to the zip file
+        :type zip_path: Path
+        :param overwrite: If True, it will overwrite the package if it already exists,
+            defaults to False
+        :type overwrite: bool, optional
+
+        :return: The Package object
+        :rtype: Package
+        """
+        pkg_path = path / commit
+        if pkg_path.is_dir():
+            if overwrite:
+                rmtree(pkg_path)
+            else:
+                raise FileAlreadyExist(f'Files already exists in {pkg_path}')
+        pkg_path.mkdir(parents=True)
+        with Zip(zip_path, 'r') as zip_f:
+            zip_f.extractall(pkg_path, leave_top=False)
+
+        pkg = cls(path, commit, validate_pkg=True)
+        return pkg
 
     def set_judge_manager(self, judge_manager: JudgeManager):
         self.judge_manager = judge_manager
@@ -367,7 +410,7 @@ class Package(PackageManager):
         self._sets.append(new_set)
         return new_set
 
-    def sets(self, set_name: str = None, add_new: bool = False) -> 'TSet' or List['TSet']:
+    def sets(self, set_name: str = None, add_new: bool = False) -> TSet or List[TSet]:
         """
         It returns the set with the name `set_name` if it exists, otherwise it raises an error
         If set_name is None, it returns list of all sets.

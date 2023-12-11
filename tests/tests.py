@@ -1,9 +1,12 @@
 import shutil
 from unittest import TestCase
 from baca2PackageManager.manager_exceptions import NoSetFound, NoTestFound
-from baca2PackageManager.validators import isAny, isNone, isInt, isIntBetween, isFloat, isFloatBetween, isStr, is_, \
-    isIn, isShorter, isDict, isPath, isSize, isList, memory_converting, valid_memory_size, hasStructure, isSize
-from baca2PackageManager import TestF, TSet, Package, set_base_dir, base_dir, add_supported_extensions
+from baca2PackageManager.validators import isAny, isNone, isInt, isIntBetween, isFloat, \
+    isFloatBetween, isStr, is_, \
+    isIn, isShorter, isDict, isPath, isSize, isList, memory_converting, valid_memory_size, \
+    hasStructure, isSize
+from baca2PackageManager import TestF, TSet, Package, set_base_dir, base_dir, \
+    add_supported_extensions
 from pathlib import Path
 from yaml import safe_load
 import random
@@ -633,3 +636,38 @@ class PackageTests(TestCase):
         self.assertTrue((self.package.commit_path / '.build' / 'test').is_dir())
         self.package.delete_build()
         self.assertFalse((self.package.commit_path / '.build').is_dir())
+
+
+class PackageZip(TestCase):
+    def setUp(self):
+        self.test_base = Path(__file__).parent / 'test_packages'
+        self.zip_path = self.test_base / 'zip_src'
+        self.pkg_path = self.test_base / 'zip_pkg'
+
+    def tearDown(self):
+        if self.pkg_path.exists():
+            shutil.rmtree(self.pkg_path)
+
+    def test_01_create_simple_package(self):
+        """
+        Tests creating simple package from zip file, checks primary values
+        """
+        pkg = Package.create_from_zip(self.pkg_path, '1', self.zip_path / 'test_pkg.zip')
+        self.assertEqual(pkg['title'], 'zip test pkg')
+        self.assertEqual(pkg['points'], 123)
+
+    def test_02_create_simple_package_depth_test(self):
+        """
+        Tests creating simple package from zip file, checks in-depth values
+        """
+        pkg = Package.create_from_zip(self.pkg_path, '1', self.zip_path / 'test_pkg.zip')
+        self.assertEqual(pkg['title'], 'zip test pkg')
+
+        set1 = pkg.sets('set1')
+        self.assertEqual(set1['name'], 'set1')
+        self.assertEqual(set1['points'], 10)
+        test1 = set1.tests('1')
+        with open(test1['input'], 'r') as f:
+            self.assertEqual(f.read(), 'set1 in')
+        with open(test1['output'], 'r') as f:
+            self.assertEqual(f.read(), 'set1 out')
