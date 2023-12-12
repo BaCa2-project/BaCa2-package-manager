@@ -570,7 +570,8 @@ class PackageTests(TestCase):
 
     def test_func_sets2(self):
         """
-        It tests that the function sets() raises an exception when it is passed a set that does not exist.
+        It tests that the function sets() raises an exception when it is passed a set that does not
+        exist.
         """
         self.assertRaises(NoSetFound, self.package.sets, 'set3')
 
