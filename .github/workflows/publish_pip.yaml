@@ -38,6 +38,25 @@ on:
 #            sha: context.sha
 #          })
 jobs:
+  test-with-pytest:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Test with pytest
+        run: |
+          pytest
+
   build:
     runs-on: ubuntu-latest
     needs: test-with-pytest
@@ -50,7 +69,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install build
+        pip install build requests
     - name: Build package
       run: python3 -m build
 
