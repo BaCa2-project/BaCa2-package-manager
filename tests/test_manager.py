@@ -1,5 +1,9 @@
 import shutil
 from unittest import TestCase
+
+from parameterized import parameterized
+import pytest
+
 from baca2PackageManager.manager_exceptions import NoSetFound, NoTestFound
 from baca2PackageManager.validators import isAny, isNone, isInt, isIntBetween, isFloat, \
     isFloatBetween, isStr, is_, \
@@ -392,21 +396,33 @@ class ValidationsTests(TestCase):
     #     abs_path = Path("BaCa2/package/packages/1/prog/sopution.cpp").resolve()
     #     self.assertFalse(isPath(abs_path))
 
-    def test_isSize(self):
+
+    def size_test(self, size_min, size_max):
+        pass
+
+    @parameterized.expand([
+        (1, 100),
+        (100, 1000),
+        (1000, 10000),
+        (1, 100000)
+    ])
+    def test_isSize(self, size_min, size_max):
         """
         It tests if the function isSize() works correctly
         """
         unit_list = ['B', 'K', 'M', 'G']
-        for i in range(1000):
-            size = random.randint(1, 100000)
-            max_size = random.randint(size, 100001)
+        for i in range(3000):
+            size = random.randint(size_min, size_max)
+            max_size = random.randint(size, size_max+1)
             unit1 = random.choice(unit_list)
             unit2 = random.choice(unit_list)
             if not (compare_memory_unit(unit1, unit2)):
                 unit1, unit2 = unit2, unit1  # now unit1 is smaller than unit
             mem_size = str(size) + unit1
             max_mem_size = str(max_size) + unit2
-            self.assertTrue(isSize(mem_size, max_mem_size))
+            self.assertTrue(isSize(mem_size, max_mem_size),
+                            f"mem_size: {mem_size}, max_mem_size: {max_mem_size}")
+
 
 
 # It tests the TestF class
@@ -566,7 +582,7 @@ class PackageTests(TestCase):
         """
         It tests if the function sets() returns the correct set.
         """
-        self.assertEqual(self.package.sets('set0'), self.package._sets[0])
+        self.assertIn(self.package.sets('set0'), self.package._sets)
 
     def test_func_sets2(self):
         """

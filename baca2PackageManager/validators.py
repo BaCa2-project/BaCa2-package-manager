@@ -204,15 +204,17 @@ def memory_converting(val: str):
 
      :return: Memory converted to bytes. (In INT type)
     """
-    if val[-1] == 'B':
-        return int(val[0:-1])
-    elif val[-1] == 'K':
-        return int(val[0:-1]) * 1024
-    elif val[-1] == 'M':
-        return int(val[0:-1]) * 1024 * 1024
-    elif val[-1] == 'G':
-        return int(val[0:-1]) * 1024 * 1024 * 1024
+    mem_sizes = {
+        'B': 1,
+        'K': 1024,
+        'M': 1024 ** 2,
+        'G': 1024 ** 3
+    }
 
+    mem_val = int(val[:-1])
+    mem_letter = val[-1]
+    mem_val *= mem_sizes.get(mem_letter, 1)
+    return mem_val
 
 def valid_memory_size(first: str, second: str):
     """
@@ -232,9 +234,12 @@ def isSize(val: str, max_size: str):
     :return: A boolean value.
     """
     val = val.strip()
-    return hasStructure(val[:-2], "<isInt>") and hasStructure(val[-1],
-                                                              "<isIn, 'B', 'K', 'M', 'G'>") and valid_memory_size(val,
-                                                                                                                  max_size)
+    val.replace(' ', '')
+    return all((
+        hasStructure(val[:-1], "<isInt>"),
+        hasStructure(val[-1], "<isIn, 'B', 'K', 'M', 'G'>"),
+        valid_memory_size(val, max_size)
+    ))
 
 
 def isList(val, *args):
