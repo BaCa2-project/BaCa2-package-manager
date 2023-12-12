@@ -71,7 +71,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install build requests
     - name: Build package
-      run: python3 -m build
+      run: python -m build
 
   publish-to-pypi:
     name: Publish package to PyPI
