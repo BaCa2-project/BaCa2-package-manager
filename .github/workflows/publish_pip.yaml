@@ -1,0 +1,72 @@
+name: Upload BaCa2-package-manager to PyPI
+
+on:
+  push:
+    branches: [ "release" ]
+  pull_request:
+    branches: [ "release" ]
+
+jobs:
+  create-tag:
+    name: Create tag
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install request
+    - name: Create tag
+      run: |
+        TAG="$( python3 version_elevator.py )"
+        echo "TAG: $TAG"
+        echo "TAG_NAME=${TAG}" >> $GITHUB_ENV
+    - name: Assign tag
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const {TAG_NAME} = process.env;
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/${TAG_NAME}',
+            sha: context.sha
+          })
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build
+    - name: Build package
+      run: python3 -m build
+
+  publish-to-pypi:
+    name: Publish package to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/baca2-package-manager/
+    permissions:
+      id-token: write
+    steps:
+    - name: Download dists
+      uses: actions/download-artifact@v3
+      with:
+        name: python-package-distributions
+        path: dist
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1

@@ -1,8 +1,9 @@
 import setuptools
+from version_elevator import version
 
 setuptools.setup(
     name='baca2-package-manager',
-    version='0.2.15',
+    version=version(new_version=True),
     author='Baca2 Team',
     author_email='bartosz.deptula@student.uj.edu.pl',
     description='A package manager for Baca2 project',

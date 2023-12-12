@@ -5,7 +5,7 @@ from baca2PackageManager.validators import isAny, isNone, isInt, isIntBetween, i
     isFloatBetween, isStr, is_, \
     isIn, isShorter, isDict, isPath, isSize, isList, memory_converting, valid_memory_size, \
     hasStructure, isSize
-from baca2PackageManager import TestF, TSet, Package, set_base_dir, base_dir, \
+from baca2PackageManager import TestF as TF, TSet, Package, set_base_dir, base_dir, \
     add_supported_extensions
 from pathlib import Path
 from yaml import safe_load
@@ -21,15 +21,13 @@ def generate_rand_int():
 
 
 def compare_memory_unit(unit1, unit2):
-    if unit1 == 'B':
-        return True
-    elif unit1 == 'K' and (unit2 == 'K' or unit2 == 'M' or unit2 == 'G'):
-        return True
-    elif unit1 == 'M' and (unit2 == 'M' or unit2 == 'G'):
-        return True
-    elif unit1 == 'G' and unit2 == 'G':
-        return True
-    return False
+    units = ['B', 'K', 'M', 'G']
+    try:
+        index1 = units.index(unit1)
+        index2 = units.index(unit2)
+        return index1 <= index2
+    except ValueError:
+        return False
 
 
 def generate_rand_dict():
@@ -422,7 +420,7 @@ class TestFTests(TestCase):
         * `{}` - the input data for the test.
         * `{'name': '1', 'memory_limit': '10M', 'time_limit': 5}` - the test parameters
         """
-        self.test = TestF(base_dir() / 'tests_to_testing', {}, {
+        self.test = TF(base_dir() / 'tests_to_testing', {}, {
             'name': '1',
             'memory_limit': '10M',
             'time_limit': 5

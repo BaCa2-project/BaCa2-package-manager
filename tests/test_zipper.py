@@ -8,6 +8,8 @@ from baca2PackageManager.zipper import Zip
 class UnzipTest(TestCase):
     def setUp(self) -> None:
         self.path = Path('./test_packages')
+        if not self.path.is_dir():
+            self.path = Path('./tests/test_packages')
         self.src = self.path / 'zip_src'
         self.dist = self.path / 'zip_dst'
         shutil.rmtree(self.dist, ignore_errors=True)
