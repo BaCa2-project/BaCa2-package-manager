@@ -1,4 +1,6 @@
-import requests
+import urllib.request
+import json
+
 from pkg_resources import parse_version
 
 MANUAL_VERSION = None
@@ -7,9 +9,9 @@ MANUAL_VERSION = None
 def list_versions(package_name):
     url = f"https://pypi.org/pypi/{package_name}/json"
 
-    res = requests.get(url, timeout=20)
+    with urllib.request.urlopen(url) as res:
+        data = json.loads(res.read().decode('utf-8'))
 
-    data = res.json()
     versions = data['releases']
 
     return sorted(versions, key=parse_version, reverse=True)
