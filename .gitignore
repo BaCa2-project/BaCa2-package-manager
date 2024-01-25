@@ -302,3 +302,5 @@ tests/test_packages/**/.build/kolejka/kolejka.conf
 
 */*.task
 *.result
+
+/docs/build
