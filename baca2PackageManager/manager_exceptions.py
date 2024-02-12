@@ -1,6 +1,7 @@
 class FileAlreadyExist(Exception):
     pass
 
+
 class NoTestFound(Exception):
     pass
 
@@ -10,4 +11,8 @@ class NoSetFound(Exception):
 
 
 class TestExistError(FileAlreadyExist):
+    pass
+
+
+class InvalidFileExtension(Exception):
     pass

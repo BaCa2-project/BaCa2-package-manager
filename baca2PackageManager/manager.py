@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 from copy import deepcopy
+from enum import Enum
 from pathlib import Path
 from os import remove, replace, walk, mkdir, rename, listdir
 from shutil import rmtree, copytree
@@ -15,7 +16,8 @@ from .validators import isAny, isNone, isInt, isIntBetween, isFloat, isFloatBetw
     isIn, isShorter, \
     isDict, isPath, isSize, isList, memory_converting, valid_memory_size, isBool
 from .consts import SUPPORTED_EXTENSIONS, BASE_DIR
-from .manager_exceptions import NoTestFound, NoSetFound, TestExistError, FileAlreadyExist
+from .manager_exceptions import NoTestFound, NoSetFound, TestExistError, FileAlreadyExist, \
+    InvalidFileExtension
 
 __all__ = ['Package', 'TSet', 'TestF']
 
@@ -168,7 +170,6 @@ class Package(PackageManager):
     It's a class that represents a package.
     """
 
-    
     #: Largest file acceptable to upload
     MAX_SUBMIT_MEMORY = '10G'
     #: Largest acceptable submit time
@@ -221,6 +222,39 @@ class Package(PackageManager):
     }
 
     # TODO: Add auto-discovery of judge manager files
+
+    class DocExtension(Enum):
+        """
+        Defines the allowed extensions for task description files
+        """
+        PDF = 'pdf'
+        MD = 'md'
+        HTML = 'html'
+        TXT = 'txt'
+
+        @classmethod
+        def allowed_extensions(cls) -> List[str]:
+            """
+            :return: List of allowed extensions
+            :rtype: List[str]
+            """
+            return [e.value for e in cls]
+
+        @classmethod
+        def from_str(cls, ext: str) -> Self:
+            """
+            Creates an instance of DocExtension from string, checking if the extension is valid
+
+            :param ext: The extension
+            :type ext: str
+            :return: Instance of DocExtension
+            :rtype: DocExtension
+
+            :raise InvalidFileExtension: If the extension is not valid
+            """
+            if ext.lower() not in cls.allowed_extensions():
+                raise InvalidFileExtension(f'"{ext}" is not valid extension for task description')
+            return cls[ext.upper()]
 
     def __init__(self, path: Path, commit: str, validate_pkg: bool = False) -> None:
         """
@@ -463,6 +497,61 @@ class Package(PackageManager):
                 result &= i.check_set()
         return self.check_validation(Package.SETTINGS_VALIDATION) & result
 
+    def doc_path(self, extension: str | DocExtension) -> Path:
+        """
+        It returns the path to the task description file with the given extension.
+
+        Valid extensions are:
+
+        * PDF
+        * MD
+        * HTML
+        * TXT
+
+        :param extension: The extension of the file
+        :type extension: str
+        :return: The path to the task description file
+        :rtype: Path
+
+        :raise FileNotFoundError: If the file with the given extension doesn't exist
+        """
+        if isinstance(extension, str):
+            extension = self.DocExtension.from_str(extension)
+        path = self.commit_path / 'doc' / f'index.{extension.value}'
+        if not path.is_file():
+            raise FileNotFoundError(f'"{extension.name}" is not valid extension for '
+                                    f'{self.get("title")} task description')
+        return path
+
+    def doc_extension(self, prefere_extension: str = None) -> str:
+        """
+        It returns the extension of the task description file. If prefere_extension is not None,
+        and the file with the given extension exists, it returns the given extension. Otherwise
+        it returns the first found extension.
+
+        :param prefere_extension: The preferred extension
+        :type prefere_extension: str
+
+        :return: The extension of the task description file
+        :rtype: str
+
+        :raise FileNotFoundError: If no file with valid extension exists.
+        """
+        if prefere_extension is not None:
+            prefere_extension = self.DocExtension.from_str(prefere_extension)
+            try:
+                self.doc_path(prefere_extension)
+                return prefere_extension.value
+            except FileNotFoundError:
+                pass
+
+        for ext in self.DocExtension:
+            try:
+                self.doc_path(ext)
+                return ext.value
+            except FileNotFoundError:
+                pass
+        raise FileNotFoundError(f'No task description file found for {self.get("title")}')
 
 class TSet(PackageManager):
     """

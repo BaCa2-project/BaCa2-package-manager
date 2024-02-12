@@ -4,7 +4,7 @@ from unittest import TestCase
 from parameterized import parameterized
 import pytest
 
-from baca2PackageManager.manager_exceptions import NoSetFound, NoTestFound
+from baca2PackageManager.manager_exceptions import NoSetFound, NoTestFound, InvalidFileExtension
 from baca2PackageManager.validators import isAny, isNone, isInt, isIntBetween, isFloat, \
     isFloatBetween, isStr, is_, \
     isIn, isShorter, isDict, isPath, isSize, isList, memory_converting, valid_memory_size, \
@@ -651,6 +651,24 @@ class PackageTests(TestCase):
         self.assertTrue((self.package.commit_path / '.build' / 'test').is_dir())
         self.package.delete_build()
         self.assertFalse((self.package.commit_path / '.build').is_dir())
+
+    def test_doc_extension_check(self):
+        """
+        It tests if the doc_extension function works.
+        """
+        self.assertEqual(self.package.doc_extension('pdf'), 'md')
+        self.assertEqual(self.package.doc_extension(), 'md')
+        doc_file = self.package.doc_path('md')
+        self.assertTrue(doc_file.is_file())
+
+    def test_doc_path(self):
+        """
+        It tests if the doc_path function works.
+        """
+        with self.assertRaises(InvalidFileExtension):
+            self.package.doc_path('x')
+        with self.assertRaises(FileNotFoundError):
+            self.package.doc_path('txt')
 
 
 class PackageZip(TestCase):
