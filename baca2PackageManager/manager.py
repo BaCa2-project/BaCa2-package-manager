@@ -209,7 +209,7 @@ class Package(PackageManager):
 
     #: Default values for Package settings
     DEFAULT_SETTINGS = {
-        'title': 'p',
+        'title': '<no-name>',
         'points': 0,
         'memory_limit': '512M',
         'time_limit': 10,
@@ -314,6 +314,13 @@ class Package(PackageManager):
 
         pkg = cls(path, commit, validate_pkg=True)
         return pkg
+
+    @property
+    def name(self) -> str:
+        """
+        :return: It returns the name of the package
+        """
+        return self._settings['title']
 
     def set_judge_manager(self, judge_manager: JudgeManager):
         self.judge_manager = judge_manager
@@ -492,9 +499,18 @@ class Package(PackageManager):
         :return: The result of the check_validation() method and the result of the check_set() method.
         """
         result = True
+        # check doc file
+        try:
+            self.doc_extension()
+        except FileNotFoundError:
+            return False
+
+        # check sets
         if subtree:
             for i in self._sets:
                 result &= i.check_set()
+
+        # check package
         return self.check_validation(Package.SETTINGS_VALIDATION) & result
 
     def doc_path(self, extension: str | DocExtension) -> Path:
