@@ -309,10 +309,16 @@ class Package(PackageManager):
             else:
                 raise FileAlreadyExist(f'Files already exists in {pkg_path}')
         pkg_path.mkdir(parents=True)
-        with Zip(zip_path, 'r') as zip_f:
-            zip_f.extractall(pkg_path, leave_top=False)
+        try:
+            with Zip(zip_path, 'r') as zip_f:
+                zip_f.extractall(pkg_path, leave_top=False)
 
-        pkg = cls(path, commit, validate_pkg=True)
+            pkg = cls(path, commit, validate_pkg=True)
+        except Exception as e:
+            rmtree(pkg_path)
+            if not any(path.iterdir()):
+                rmtree(path)
+            raise e
         return pkg
 
     @property
