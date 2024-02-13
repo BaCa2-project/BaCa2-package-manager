@@ -17,7 +17,7 @@ from .validators import isAny, isNone, isInt, isIntBetween, isFloat, isFloatBetw
     isDict, isPath, isSize, isList, memory_converting, valid_memory_size, isBool
 from .consts import SUPPORTED_EXTENSIONS, BASE_DIR
 from .manager_exceptions import NoTestFound, NoSetFound, TestExistError, FileAlreadyExist, \
-    InvalidFileExtension
+    InvalidFileExtension, PackageCreationFailed
 
 __all__ = ['Package', 'TSet', 'TestF']
 
@@ -318,7 +318,8 @@ class Package(PackageManager):
             rmtree(pkg_path)
             if not any(path.iterdir()):
                 rmtree(path)
-            raise e
+
+            raise PackageCreationFailed(e, root_path=path)
         return pkg
 
     @property
