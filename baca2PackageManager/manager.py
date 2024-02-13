@@ -319,7 +319,7 @@ class Package(PackageManager):
             if not any(path.iterdir()):
                 rmtree(path)
 
-            raise PackageCreationFailed(e, root_path=path)
+            raise PackageCreationFailed(e, root_path=pkg_path)
         return pkg
 
     @property

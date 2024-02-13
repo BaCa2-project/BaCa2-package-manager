@@ -29,8 +29,8 @@ class PackageCreationFailed(Exception):
     def message(e: Exception, **kwargs) -> str:
         msg = 'Package creation failed: '
         if isinstance(e, FileNotFoundError):
-            filename = str(e).split()[-1]
-            path = Path(filename).absolute()
+            filename = str(e).split()[-1].replace('\'', '')
+            path = Path(filename)
             msg += f'File \'{path.relative_to(kwargs.get("root_path"))}\' not found'
         else:
             msg += str(e)
