@@ -540,7 +540,12 @@ class Package(PackageManager):
         """
         if isinstance(extension, str):
             extension = self.DocExtension.from_str(extension)
-        path = self.commit_path / 'doc' / f'index.{extension.value}'
+        doc_path = self.commit_path / 'doc'
+        path = None
+        for file in doc_path.iterdir():
+            if file.suffix == extension.value:
+                path = file
+                break
         if not path.is_file():
             raise FileNotFoundError(f'"{extension.name}" is not valid extension for '
                                     f'{self.get("title")} task description')
