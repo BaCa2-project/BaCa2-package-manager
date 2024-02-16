@@ -228,9 +228,9 @@ class Package(PackageManager):
         """
         Defines the allowed extensions for task description files
         """
-        PDF = 'pdf'
-        MD = 'md'
         HTML = 'html'
+        MD = 'md'
+        PDF = 'pdf'
         TXT = 'txt'
 
         @classmethod
@@ -552,6 +552,31 @@ class Package(PackageManager):
                                     f'{self.get("title")} task description')
         return path
 
+    def doc_has_extension(self, extension: str | DocExtension) -> bool:
+        """
+        It checks if the task description file has the given extension.
+
+        Valid extensions are:
+
+        * PDF
+        * MD
+        * HTML
+        * TXT
+
+        :param extension: The extension of the file
+        :type extension: str
+        :return: True if the file with the given extension exists, False otherwise
+        :rtype: bool
+        """
+        try:
+            self.doc_path(extension)
+            return True
+        except FileNotFoundError:
+            return False
+        except Exception as e:
+            print(e)
+            return False
+
     def doc_extension(self, prefere_extension: str = None) -> str:
         """
         It returns the extension of the task description file. If prefere_extension is not None,
@@ -581,6 +606,7 @@ class Package(PackageManager):
             except FileNotFoundError:
                 pass
         raise FileNotFoundError(f'No task description file found for {self.get("title")}')
+
 
 class TSet(PackageManager):
     """
