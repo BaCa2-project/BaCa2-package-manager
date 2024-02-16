@@ -1,6 +1,8 @@
 from pathlib import Path
 from re import findall, split
 
+from baca2PackageManager.tools import bytes_from_str
+
 
 def isAny(val):
     """
@@ -198,31 +200,13 @@ def hasStructure(val, struct: str):
     return result
 
 
-def memory_converting(val: str):
-    """
-     function is converting memory from others units to bytes
-
-     :return: Memory converted to bytes. (In INT type)
-    """
-    mem_sizes = {
-        'B': 1,
-        'K': 1024,
-        'M': 1024 ** 2,
-        'G': 1024 ** 3
-    }
-
-    mem_val = int(val[:-1])
-    mem_letter = val[-1]
-    mem_val *= mem_sizes.get(mem_letter, 1)
-    return mem_val
-
 def valid_memory_size(first: str, second: str):
     """
     checks if first is smaller than second considering memory
 
     :return: A boolean value.
     """
-    if memory_converting(first) <= memory_converting(second):
+    if bytes_from_str(first) <= bytes_from_str(second):
         return True
     return False
 

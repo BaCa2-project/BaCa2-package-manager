@@ -14,7 +14,8 @@ from re import match
 from .judge_manager import JudgeManager
 from .validators import isAny, isNone, isInt, isIntBetween, isFloat, isFloatBetween, isStr, is_, \
     isIn, isShorter, \
-    isDict, isPath, isSize, isList, memory_converting, valid_memory_size, isBool
+    isDict, isPath, isSize, isList, valid_memory_size, isBool
+from .tools import bytes_from_str
 from .consts import SUPPORTED_EXTENSIONS, BASE_DIR
 from .manager_exceptions import NoTestFound, NoSetFound, TestExistError, FileAlreadyExist, \
     InvalidFileExtension, PackageCreationFailed
