@@ -607,6 +607,35 @@ class Package(PackageManager):
                 pass
         raise FileNotFoundError(f'No task description file found for {self.get("title")}')
 
+    def get_docs_to_display(self, best_and_pdf: bool = True) -> List[Path]:
+        """
+        It returns the list of paths to the task description files.
+
+        :return: The list of paths to the task description files
+        :rtype: List[Path]
+        """
+        docs = []
+        if not best_and_pdf:
+            for ext in self.DocExtension:
+                try:
+                    docs.append(self.doc_path(ext))
+                except FileNotFoundError:
+                    pass
+            return docs
+
+        try:
+            docs.append(self.doc_path('pdf'))
+        except FileNotFoundError:
+            pass
+        for ext in self.DocExtension:
+            if ext.value == 'pdf':
+                continue
+            try:
+                docs.append(self.doc_path(ext))
+                return docs
+            except FileNotFoundError:
+                pass
+
 
 class TSet(PackageManager):
     """

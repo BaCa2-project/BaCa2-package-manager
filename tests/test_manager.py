@@ -669,8 +669,26 @@ class PackageTests(TestCase):
         with self.assertRaises(InvalidFileExtension):
             self.package.doc_path('x')
         with self.assertRaises(FileNotFoundError):
-            self.package.doc_path('txt')
+            self.package.doc_path('pdf')
 
+    def test_docs_to_display_all(self):
+        """
+        It tests if the get_docs_to_display function works.
+        """
+        docs = self.package.get_docs_to_display(best_and_pdf=False)
+        self.assertEqual(len(docs), 2)
+        for doc in docs:
+            self.assertTrue(doc.is_file())
+            self.assertTrue(doc.suffix in ('.md', '.txt'))
+
+    def test_docs_to_display_best_and_pdf(self):
+        """
+        It tests if the get_docs_to_display function works.
+        """
+        docs = self.package.get_docs_to_display(best_and_pdf=True)
+        self.assertEqual(len(docs), 1)
+        self.assertTrue(docs[0].is_file())
+        self.assertTrue(docs[0].suffix == '.md')
 
 class PackageZip(TestCase):
     def setUp(self):
