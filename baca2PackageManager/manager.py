@@ -542,11 +542,11 @@ class Package(PackageManager):
             extension = self.DocExtension.from_str(extension)
         doc_path = self.commit_path / 'doc'
         path = None
-        for file in doc_path.iterdir():
-            if file.suffix == extension.value:
-                path = file
+        for f in doc_path.iterdir():
+            if f.suffix == f'.{extension.value}':
+                path = f
                 break
-        if not path.is_file():
+        if not (path and path.is_file()):
             raise FileNotFoundError(f'"{extension.name}" is not valid extension for '
                                     f'{self.get("title")} task description')
         return path
