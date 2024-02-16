@@ -4,7 +4,7 @@ import json
 
 from pkg_resources import parse_version
 
-MANUAL_VERSION = "0.3.0"
+MANUAL_VERSION = None
 
 
 def list_versions(package_name):
