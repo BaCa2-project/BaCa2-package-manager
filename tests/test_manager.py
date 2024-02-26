@@ -7,8 +7,9 @@ import pytest
 from baca2PackageManager.manager_exceptions import NoSetFound, NoTestFound, InvalidFileExtension
 from baca2PackageManager.validators import isAny, isNone, isInt, isIntBetween, isFloat, \
     isFloatBetween, isStr, is_, \
-    isIn, isShorter, isDict, isPath, isSize, isList, memory_converting, valid_memory_size, \
+    isIn, isShorter, isDict, isPath, isSize, isList, valid_memory_size, \
     hasStructure, isSize
+from baca2PackageManager.tools import bytes_from_str
 from baca2PackageManager import TestF as TF, TSet, Package, set_base_dir, base_dir, \
     add_supported_extensions
 from pathlib import Path
@@ -245,16 +246,16 @@ class ValidationsTests(TestCase):
         size = 456
         val = str(size) + "B"
         # test for B unit value
-        self.assertEqual(memory_converting(val), size, message)
+        self.assertEqual(bytes_from_str(val), size, message)
         val = str(size) + "K"
         # test for K unit value
-        self.assertEqual(memory_converting(val), size * 1024, message)
+        self.assertEqual(bytes_from_str(val), size * 1024, message)
         val = str(size) + "M"
         # test for M unit value
-        self.assertEqual(memory_converting(val), size * 1024 * 1024, message)
+        self.assertEqual(bytes_from_str(val), size * 1024 * 1024, message)
         val = str(size) + "G"
         # test for G unit value
-        self.assertEqual(memory_converting(val), size * 1024 * 1024 * 1024, message)
+        self.assertEqual(bytes_from_str(val), size * 1024 * 1024 * 1024, message)
 
     def test_valid_memory_size(self):
         """
@@ -668,8 +669,26 @@ class PackageTests(TestCase):
         with self.assertRaises(InvalidFileExtension):
             self.package.doc_path('x')
         with self.assertRaises(FileNotFoundError):
-            self.package.doc_path('txt')
+            self.package.doc_path('pdf')
 
+    def test_docs_to_display_all(self):
+        """
+        It tests if the get_docs_to_display function works.
+        """
+        docs = self.package.get_docs_to_display(best_and_pdf=False)
+        self.assertEqual(len(docs), 2)
+        for doc in docs:
+            self.assertTrue(doc.is_file())
+            self.assertTrue(doc.suffix in ('.md', '.txt'))
+
+    def test_docs_to_display_best_and_pdf(self):
+        """
+        It tests if the get_docs_to_display function works.
+        """
+        docs = self.package.get_docs_to_display(best_and_pdf=True)
+        self.assertEqual(len(docs), 1)
+        self.assertTrue(docs[0].is_file())
+        self.assertTrue(docs[0].suffix == '.md')
 
 class PackageZip(TestCase):
     def setUp(self):

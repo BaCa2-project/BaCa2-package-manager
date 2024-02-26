@@ -14,10 +14,11 @@ from re import match
 from .judge_manager import JudgeManager
 from .validators import isAny, isNone, isInt, isIntBetween, isFloat, isFloatBetween, isStr, is_, \
     isIn, isShorter, \
-    isDict, isPath, isSize, isList, memory_converting, valid_memory_size, isBool
+    isDict, isPath, isSize, isList, valid_memory_size, isBool
+from .tools import bytes_from_str
 from .consts import SUPPORTED_EXTENSIONS, BASE_DIR
 from .manager_exceptions import NoTestFound, NoSetFound, TestExistError, FileAlreadyExist, \
-    InvalidFileExtension
+    InvalidFileExtension, PackageCreationFailed
 
 __all__ = ['Package', 'TSet', 'TestF']
 
@@ -209,7 +210,7 @@ class Package(PackageManager):
 
     #: Default values for Package settings
     DEFAULT_SETTINGS = {
-        'title': 'p',
+        'title': '<no-name>',
         'points': 0,
         'memory_limit': '512M',
         'time_limit': 10,
@@ -227,9 +228,9 @@ class Package(PackageManager):
         """
         Defines the allowed extensions for task description files
         """
-        PDF = 'pdf'
-        MD = 'md'
         HTML = 'html'
+        MD = 'md'
+        PDF = 'pdf'
         TXT = 'txt'
 
         @classmethod
@@ -279,6 +280,9 @@ class Package(PackageManager):
         if validate_pkg:
             self.check_package()
 
+        if isinstance(self['allowedExtensions'], str):
+            self['allowedExtensions'] = [self['allowedExtensions']]
+
     @classmethod
     def create_from_zip(cls,
                         path: Path,
@@ -309,11 +313,25 @@ class Package(PackageManager):
             else:
                 raise FileAlreadyExist(f'Files already exists in {pkg_path}')
         pkg_path.mkdir(parents=True)
-        with Zip(zip_path, 'r') as zip_f:
-            zip_f.extractall(pkg_path, leave_top=False)
+        try:
+            with Zip(zip_path, 'r') as zip_f:
+                zip_f.extractall(pkg_path, leave_top=False)
 
-        pkg = cls(path, commit, validate_pkg=True)
+            pkg = cls(path, commit, validate_pkg=True)
+        except Exception as e:
+            rmtree(pkg_path)
+            if not any(path.iterdir()):
+                rmtree(path)
+
+            raise PackageCreationFailed(e, root_path=pkg_path)
         return pkg
+
+    @property
+    def name(self) -> str:
+        """
+        :return: It returns the name of the package
+        """
+        return self._settings['title']
 
     def set_judge_manager(self, judge_manager: JudgeManager):
         self.judge_manager = judge_manager
@@ -492,10 +510,36 @@ class Package(PackageManager):
         :return: The result of the check_validation() method and the result of the check_set() method.
         """
         result = True
+        # check doc file
+        try:
+            self.doc_extension()
+        except FileNotFoundError:
+            return False
+
+        # check sets
         if subtree:
             for i in self._sets:
                 result &= i.check_set()
+
+        # check package
         return self.check_validation(Package.SETTINGS_VALIDATION) & result
+
+    def check_source(self, source_code: Path) -> None:
+        """
+        It checks the source code
+
+        :param source_code: The path to the source code
+        :type source_code: Path
+        """
+        if not source_code.is_file():
+            raise FileNotFoundError(f'File not found')
+        if source_code.suffix[1:] not in self['allowedExtensions']:
+            if source_code.suffix[1:].lower() == 'zip':
+                with Zip(source_code) as zip_f:
+                    if not zip_f.check_extensions(self['allowedExtensions']):
+                        raise InvalidFileExtension('Zipped file contains files with invalid '
+                                                   'extension')
+            raise InvalidFileExtension(f'Submitted file has invalid extension')
 
     def doc_path(self, extension: str | DocExtension) -> Path:
         """
@@ -517,11 +561,41 @@ class Package(PackageManager):
         """
         if isinstance(extension, str):
             extension = self.DocExtension.from_str(extension)
-        path = self.commit_path / 'doc' / f'index.{extension.value}'
-        if not path.is_file():
+        doc_path = self.commit_path / 'doc'
+        path = None
+        for f in doc_path.iterdir():
+            if f.suffix == f'.{extension.value}':
+                path = f
+                break
+        if not (path and path.is_file()):
             raise FileNotFoundError(f'"{extension.name}" is not valid extension for '
                                     f'{self.get("title")} task description')
         return path
+
+    def doc_has_extension(self, extension: str | DocExtension) -> bool:
+        """
+        It checks if the task description file has the given extension.
+
+        Valid extensions are:
+
+        * PDF
+        * MD
+        * HTML
+        * TXT
+
+        :param extension: The extension of the file
+        :type extension: str
+        :return: True if the file with the given extension exists, False otherwise
+        :rtype: bool
+        """
+        try:
+            self.doc_path(extension)
+            return True
+        except FileNotFoundError:
+            return False
+        except Exception as e:
+            print(e)
+            return False
 
     def doc_extension(self, prefere_extension: str = None) -> str:
         """
@@ -552,6 +626,36 @@ class Package(PackageManager):
             except FileNotFoundError:
                 pass
         raise FileNotFoundError(f'No task description file found for {self.get("title")}')
+
+    def get_docs_to_display(self, best_and_pdf: bool = True) -> List[Path]:
+        """
+        It returns the list of paths to the task description files.
+
+        :return: The list of paths to the task description files
+        :rtype: List[Path]
+        """
+        docs = []
+        if not best_and_pdf:
+            for ext in self.DocExtension:
+                try:
+                    docs.append(self.doc_path(ext))
+                except FileNotFoundError:
+                    pass
+            return docs
+
+        try:
+            docs.append(self.doc_path('pdf'))
+        except FileNotFoundError:
+            pass
+        for ext in self.DocExtension:
+            if ext.value == 'pdf':
+                continue
+            try:
+                docs.append(self.doc_path(ext))
+                return docs
+            except FileNotFoundError:
+                pass
+
 
 class TSet(PackageManager):
     """
