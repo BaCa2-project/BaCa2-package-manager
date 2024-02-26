@@ -184,7 +184,7 @@ class Package(PackageManager):
         'source_memory': [[isSize, MAX_SOURCE_SIZE]],
         'time_limit': [[isIntBetween, 0, MAX_SUBMIT_TIME], [isFloatBetween, 0, MAX_SUBMIT_TIME]],
         'allowedExtensions': [[isIn, *SUPPORTED_EXTENSIONS],
-                              [isList, [isIn, *SUPPORTED_EXTENSIONS]]],
+                              [isList]],
         'hinter': [[isNone], [isPath]],
         'checker': [[isNone], [isPath]],
         'test_generator': [[isNone], [isPath]],
@@ -277,11 +277,10 @@ class Package(PackageManager):
         self.judge_manager = None
         for i in [x[0].replace(str(sets_path) + '\\', '') for x in walk(sets_path)][1:]:
             self._sets.append(TSet(sets_path / i))
-        if validate_pkg:
-            self.check_package()
-
         if isinstance(self['allowedExtensions'], str):
             self['allowedExtensions'] = [self['allowedExtensions']]
+        if validate_pkg:
+            self.check_package()
 
     @classmethod
     def create_from_zip(cls,
