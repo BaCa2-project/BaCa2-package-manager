@@ -184,7 +184,7 @@ class Package(PackageManager):
         'source_memory': [[isSize, MAX_SOURCE_SIZE]],
         'time_limit': [[isIntBetween, 0, MAX_SUBMIT_TIME], [isFloatBetween, 0, MAX_SUBMIT_TIME]],
         'allowedExtensions': [[isIn, *SUPPORTED_EXTENSIONS],
-                              [isList, [isIn, *SUPPORTED_EXTENSIONS]]],
+                              [isList]],
         'hinter': [[isNone], [isPath]],
         'checker': [[isNone], [isPath]],
         'test_generator': [[isNone], [isPath]],
@@ -277,6 +277,8 @@ class Package(PackageManager):
         self.judge_manager = None
         for i in [x[0].replace(str(sets_path) + '\\', '') for x in walk(sets_path)][1:]:
             self._sets.append(TSet(sets_path / i))
+        if isinstance(self['allowedExtensions'], str):
+            self['allowedExtensions'] = [self['allowedExtensions']]
         if validate_pkg:
             self.check_package()
 
@@ -520,6 +522,23 @@ class Package(PackageManager):
 
         # check package
         return self.check_validation(Package.SETTINGS_VALIDATION) & result
+
+    def check_source(self, source_code: Path) -> None:
+        """
+        It checks the source code
+
+        :param source_code: The path to the source code
+        :type source_code: Path
+        """
+        if not source_code.is_file():
+            raise FileNotFoundError(f'File not found')
+        if source_code.suffix[1:] not in self['allowedExtensions']:
+            if source_code.suffix[1:].lower() == 'zip':
+                with Zip(source_code) as zip_f:
+                    if not zip_f.check_extensions(self['allowedExtensions']):
+                        raise InvalidFileExtension('Zipped file contains files with invalid '
+                                                   'extension')
+            raise InvalidFileExtension(f'Submitted file has invalid extension')
 
     def doc_path(self, extension: str | DocExtension) -> Path:
         """

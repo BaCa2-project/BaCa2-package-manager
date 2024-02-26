@@ -1,0 +1,11 @@
+allowedExtensions:
+- cpp
+checker: null
+cpus: 1
+hinter: null
+memory_limit: 512M
+network: false
+points: 0
+test_generator: null
+time_limit: 10
+title: fibonacci
