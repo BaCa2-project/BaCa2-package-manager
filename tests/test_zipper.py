@@ -63,3 +63,13 @@ class UnzipTest(TestCase):
             self.assertEqual(f.read(), 'zok/2.txt ok')
         with open(dir_path / '3.txt', 'r') as f:
             self.assertEqual(f.read(), 'zok/3.txt ok')
+
+    def test_05_source_extensions_allowed(self):
+        with Zip(self.src / 'z_src_cpp.zip') as zip_f:
+            self.assertTrue(zip_f.check_extensions(['cpp']))
+            self.assertFalse(zip_f.check_extensions(['c', 'h', 'hpp']))
+
+    def test_06_source_extensions_not_allowed(self):
+        with Zip(self.src / 'z_src_cpp_py.zip') as zip_f:
+            self.assertFalse(zip_f.check_extensions(['cpp']))
+            self.assertTrue(zip_f.check_extensions(['cpp', 'py']))

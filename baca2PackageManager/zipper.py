@@ -91,3 +91,17 @@ class Zip(ZipFile):
         super().extractall(path, members, pwd)
         self.move_to_top(path, leave_top)
 
+    def check_extensions(self, allowed_extensions: Iterable[str]):
+        """
+        Checks if the zip file contains only files with allowed extensions.
+
+        :param allowed_extensions: Allowed file extensions.
+        :type allowed_extensions: Iterable[str]
+        :return: True if the zip file contains only files with allowed extensions, False otherwise.
+        :rtype: bool
+        """
+        for file in self.filelist:
+            if Path(file.filename).suffix[1:].lower() not in allowed_extensions:
+                return False
+        return True
+
