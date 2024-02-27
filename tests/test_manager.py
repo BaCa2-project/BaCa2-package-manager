@@ -53,16 +53,21 @@ def generate_rand_dict():
     return _dict
 
 
-def generate_rand_list():
+def generate_rand_list(only_int=False, only_str=False, only_float=False):
     _list = []
     for i in range(100):
-        val1 = random.choice(string.ascii_letters)
-        val2 = random.randint(1, 10000)
-        val3 = random.uniform(1, 10000)
-        _list.append(val1)
-        _list.append(val2)
-        _list.append(val3)
-    return list
+        if only_int:
+            val = random.randint(1, 10000)
+        elif only_str:
+            val = random.choice(string.ascii_letters)
+        elif only_float:
+            val = random.uniform(1, 10000)
+        else:
+            val = random.choice([random.randint(1, 10000),
+                                 random.choice(string.ascii_letters),
+                                 random.uniform(1, 10000)])
+        _list.append(val)
+    return _list
 
 
 class ValidationsTests(TestCase):
@@ -236,6 +241,41 @@ class ValidationsTests(TestCase):
             _list = generate_rand_list()
             self.assertTrue(isList(_list))
 
+    def test_isList_with_validation(self):
+        """
+        It tests if the function isList() works correctly
+        """
+        for i in range(1000):
+            _list = generate_rand_list(only_int=True)
+            self.assertTrue(isList(_list, [isInt]))
+            self.assertTrue(isList(_list, [isFloat]))
+            self.assertFalse(isList(_list, [isStr]))
+            self.assertTrue(isList(_list, [isAny]))
+            self.assertTrue(isList(_list, [isIntBetween, 0, 10001]))
+            self.assertFalse(isList(_list, [isDict]))
+            self.assertFalse(isList(_list, [isList]))
+            self.assertFalse(isList(_list, [isNone]))
+        for i in range(1000):
+            _list = generate_rand_list(only_str=True)
+            self.assertFalse(isList(_list, [isInt]))
+            self.assertFalse(isList(_list, [isFloat]))
+            self.assertTrue(isList(_list, [isStr]))
+            self.assertTrue(isList(_list, [isAny]))
+            self.assertFalse(isList(_list, [isIntBetween, 0, 10001]))
+            self.assertFalse(isList(_list, [isDict]))
+            self.assertFalse(isList(_list, [isList]))
+            self.assertFalse(isList(_list, [isNone]))
+        for i in range(1000):
+            _list = generate_rand_list(only_float=True)
+            self.assertFalse(isList(_list, [isInt]))
+            self.assertTrue(isList(_list, [isFloat]))
+            self.assertFalse(isList(_list, [isStr]))
+            self.assertTrue(isList(_list, [isAny]))
+            self.assertTrue(isList(_list, [isFloatBetween, 0, 10000]))
+            self.assertFalse(isList(_list, [isDict]))
+            self.assertFalse(isList(_list, [isList]))
+            self.assertFalse(isList(_list, [isNone]))
+
     def test_memory_converting(self):
         """
         It tests if the function memory_converting() works correctly
@@ -397,7 +437,6 @@ class ValidationsTests(TestCase):
     #     abs_path = Path("BaCa2/package/packages/1/prog/sopution.cpp").resolve()
     #     self.assertFalse(isPath(abs_path))
 
-
     def size_test(self, size_min, size_max):
         pass
 
@@ -414,7 +453,7 @@ class ValidationsTests(TestCase):
         unit_list = ['B', 'K', 'M', 'G']
         for i in range(3000):
             size = random.randint(size_min, size_max)
-            max_size = random.randint(size, size_max+1)
+            max_size = random.randint(size, size_max + 1)
             unit1 = random.choice(unit_list)
             unit2 = random.choice(unit_list)
             if not (compare_memory_unit(unit1, unit2)):
@@ -423,7 +462,6 @@ class ValidationsTests(TestCase):
             max_mem_size = str(max_size) + unit2
             self.assertTrue(isSize(mem_size, max_mem_size),
                             f"mem_size: {mem_size}, max_mem_size: {max_mem_size}")
-
 
 
 # It tests the TestF class
@@ -689,6 +727,7 @@ class PackageTests(TestCase):
         self.assertEqual(len(docs), 1)
         self.assertTrue(docs[0].is_file())
         self.assertTrue(docs[0].suffix == '.md')
+
 
 class PackageZip(TestCase):
     def setUp(self):
