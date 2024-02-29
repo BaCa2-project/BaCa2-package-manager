@@ -19,6 +19,8 @@ class TestResult(pydantic.BaseModel):
     time_cpu: float
     runtime_memory: int
 
+    text: dict[str, str]
+
 
 class SetResult(pydantic.BaseModel):
     name: str
@@ -34,7 +36,8 @@ class BrokerToBaca(pydantic.BaseModel):
 class BrokerToBacaError(pydantic.BaseModel):
     pass_hash: str
     submit_id: str
-    error: str
+    error_id: str = '0'
+    error_data: dict[str, str]
 
 
 def create_broker_submit_id(course_name: str, submit_id: int) -> str:
