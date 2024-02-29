@@ -1,83 +1,40 @@
-from dataclasses import dataclass, asdict
 from hashlib import sha256
 import re
 
+import pydantic
 
-@dataclass
-class BacaToBroker:
+
+class BacaToBroker(pydantic.BaseModel):
     pass_hash: str
     submit_id: str
     package_path: str
     commit_id: str
     submit_path: str
 
-    def serialize(self):
-        return asdict(self)
 
-    @classmethod
-    def parse(cls, data: dict):
-        return cls(**data)
-
-
-@dataclass
-class TestResult:
+class TestResult(pydantic.BaseModel):
     name: str
     status: str
     time_real: float
     time_cpu: float
     runtime_memory: int
 
-    def serialize(self):
-        return asdict(self)
 
-    @classmethod
-    def parse(cls, data: dict):
-        return cls(**data)
-
-
-@dataclass
-class SetResult:
+class SetResult(pydantic.BaseModel):
     name: str
     tests: dict[str, TestResult]
 
-    def serialize(self):
-        return asdict(self)
 
-    @classmethod
-    def parse(cls, data_: dict):
-        data = data_.copy()
-        data['tests'] = {key: TestResult.parse(val) for key, val in data['tests'].items()}
-        return cls(**data)
-
-
-@dataclass
-class BrokerToBaca:
+class BrokerToBaca(pydantic.BaseModel):
     pass_hash: str
     submit_id: str
     results: dict[str, SetResult]
 
-    def serialize(self):
-        return asdict(self)
 
-    @classmethod
-    def parse(cls, data_: dict):
-        data = data_.copy()
-        data['results'] = {key: SetResult.parse(val) for key, val in data['results'].items()}
-        return cls(**data)
-
-
-@dataclass
-class BrokerToBacaError:
+class BrokerToBacaError(pydantic.BaseModel):
     pass_hash: str
     submit_id: str
     error: str
-
-    def serialize(self):
-        return asdict(self)
-
-    @classmethod
-    def parse(cls, data: dict):
-        return cls(**data)
 
 
 def create_broker_submit_id(course_name: str, submit_id: int) -> str:
