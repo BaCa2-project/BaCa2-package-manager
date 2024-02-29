@@ -184,7 +184,7 @@ class Package(PackageManager):
         'source_memory': [[isSize, MAX_SOURCE_SIZE]],
         'time_limit': [[isIntBetween, 0, MAX_SUBMIT_TIME], [isFloatBetween, 0, MAX_SUBMIT_TIME]],
         'allowedExtensions': [[isIn, *SUPPORTED_EXTENSIONS],
-                              [isList]],
+                              [isList, *SUPPORTED_EXTENSIONS]],
         'hinter': [[isNone], [isPath]],
         'checker': [[isNone], [isPath]],
         'test_generator': [[isNone], [isPath]],
@@ -655,6 +655,18 @@ class Package(PackageManager):
             except FileNotFoundError:
                 pass
 
+    def print_tree(self):
+        """
+        It prints the tree of the package
+        """
+        print(f'Package {self.name}:')
+
+        for i in self._sets:
+            print(f'|- {i["name"]}')
+            for j in i._tests:
+                print(f'|  |- {j["name"]}')
+            print('|')
+
 
 class TSet(PackageManager):
     """
@@ -690,10 +702,10 @@ class TSet(PackageManager):
     #: Default values for set settings
     DEFAULT_SETTINGS = {
         'name': '_unnamed',
-        'weight': 10,
+        'weight': 1,
         'points': 0,
         'memory_limit': '512M',
-        'time_limit': 10,
+        'time_limit': 1,
         'checker': None,
         'test_generator': None,
         'tests': {},
@@ -929,7 +941,7 @@ class TestF(PackageManager):
         * ``time_limit``: is a time limit for test
         * ``input``: is a path or None value to actual input
         * ``output``: is a path or None value to actual output
-       """
+    """
 
     def __init__(self, path: Path, additional_settings: dict or Path, default_settings: dict):
         """

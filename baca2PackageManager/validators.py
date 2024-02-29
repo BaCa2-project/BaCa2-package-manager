@@ -232,11 +232,13 @@ def isList(val, *args):
 
     :return: A boolean value.
     """
-    if type(val) == list:
-        result = False
+    if isinstance(val, list):
+        if not args:
+            return True
+
         for i in val:
-            for j in args:
-                result |= hasStructure(i, j)
-            if not result:
-                return result
-    return True
+            if not any([vl[0](i, *vl[1:]) for vl in args]):
+                return False
+
+        return True
+    return False
