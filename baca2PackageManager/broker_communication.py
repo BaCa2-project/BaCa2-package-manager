@@ -15,10 +15,10 @@ class BacaToBroker(pydantic.BaseModel):
 class TestResult(pydantic.BaseModel):
     name: str
     status: str
-    time_real: float
-    time_cpu: float
-    runtime_memory: int
-    answer: str
+    time_real: float = 0.0
+    time_cpu: float = 0.0
+    runtime_memory: int = 0
+    answer: str = ''
 
     logs: dict[str, str] = {}
 
