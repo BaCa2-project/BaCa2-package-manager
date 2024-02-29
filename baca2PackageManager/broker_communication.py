@@ -18,8 +18,9 @@ class TestResult(pydantic.BaseModel):
     time_real: float
     time_cpu: float
     runtime_memory: int
+    answer: str
 
-    text: dict[str, str]
+    logs: dict[str, str] = {}
 
 
 class SetResult(pydantic.BaseModel):
