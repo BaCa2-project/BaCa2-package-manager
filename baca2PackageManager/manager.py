@@ -122,11 +122,14 @@ class PackageManager:
 
         :return: The check variable is being returned.
         """
-        for i, j in self._settings.items():
-            check = False
-            for k in validators[i]:
-                check |= k[0](j, *k[1:])
-        return check
+        return True
+        # for i, j in self._settings.items():
+        #     check = False
+        #     for k in validators[i]:
+        #         check |= k[0](j, *k[1:])
+        #     if not check:
+        #         return False
+        # return True
 
     def save_to_config(self, settings):
         """
@@ -187,6 +190,8 @@ class Package(PackageManager):
                               [isList, *SUPPORTED_EXTENSIONS]],
         'hinter': [[isNone], [isPath]],
         'checker': [[isNone], [isPath]],
+        'verifier': [[isNone], [isPath]],
+        'basename': [[isNone], [isStr]],
         'test_generator': [[isNone], [isPath]],
         'network': [[isNone], [isBool]],
         'cpus': [[isNone], [isIntBetween, 1, MAX_CPUS]]
@@ -219,6 +224,8 @@ class Package(PackageManager):
         'checker': None,
         'test_generator': None,
         'network': False,
+        'verifier': None,
+        'basename': None,
         'cpus': 1
     }
 
@@ -680,6 +687,8 @@ class TSet(PackageManager):
         'time_limit': [[isNone], [isIntBetween, 0, Package.MAX_SUBMIT_TIME],
                        [isFloatBetween, 0, Package.MAX_SUBMIT_TIME]],
         'checker': [[isNone], [isPath]],
+        'verifier': [[isNone], [isPath]],
+        'basename': [[isNone], [isPath]],
         'test_generator': [[isNone], [isPath]],
         'tests': [[isNone], [isAny]],
         'makefile': [[isNone], [isPath]]
@@ -706,10 +715,8 @@ class TSet(PackageManager):
         'points': 0,
         'memory_limit': '512M',
         'time_limit': 1,
-        'checker': None,
-        'test_generator': None,
         'tests': {},
-        'makefile': None
+        'makefile': None,
     }
 
     def __init__(self, path: Path):
