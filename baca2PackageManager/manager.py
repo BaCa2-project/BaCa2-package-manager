@@ -751,7 +751,7 @@ class TSet(PackageManager):
         if inherit_settings is not None:
             inherit_settings = inherit_settings.copy()
             for k, v in inherit_settings.items():
-                if k not in self._settings.keys() and v and k in self.DEFAULT_SETTINGS.keys():
+                if (k not in self._settings.keys() or not self._settings[k]) and v and k in self.DEFAULT_SETTINGS.keys():
                     self._settings[k] = v
 
     def move_test_file(self, to_set, filename):
