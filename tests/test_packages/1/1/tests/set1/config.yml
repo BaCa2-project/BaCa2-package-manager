@@ -1,9 +1,10 @@
+basename: null
 checker: null
 makefile: null
 memory_limit: 5M
 name: set1
 points: 10
-test_generator: null
 tests: {}
 time_limit: 10
+verifier: null
 weight: 7

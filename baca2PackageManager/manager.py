@@ -717,9 +717,12 @@ class TSet(PackageManager):
         'time_limit': 1,
         'tests': {},
         'makefile': None,
+        'checker': None,
+        'verifier': None,
+        'basename': None,
     }
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, inherit_settings: dict = None):
         """
         It reads the config file and creates a list of tests
 
@@ -745,6 +748,11 @@ class TSet(PackageManager):
             for i in self._settings['tests'].values():
                 self._tests.append(TestF(path, i, self._test_settings))
         self._add_test_from_dir()
+        if inherit_settings is not None:
+            inherit_settings = inherit_settings.copy()
+            for k, v in inherit_settings:
+                if k not in self._settings.keys() and v and k in self.DEFAULT_SETTINGS.keys():
+                    self._settings[k] = v
 
     def move_test_file(self, to_set, filename):
         """

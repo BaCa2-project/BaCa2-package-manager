@@ -1,5 +1,6 @@
 allowedExtensions:
 - cpp
+basename: null
 checker: null
 cpus: 1
 hinter: null
@@ -9,3 +10,4 @@ points: 0
 test_generator: null
 time_limit: 10
 title: fibonacci
+verifier: null
