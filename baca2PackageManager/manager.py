@@ -283,7 +283,7 @@ class Package(PackageManager):
         self._sets = []
         self.judge_manager = None
         for i in [x[0].replace(str(sets_path) + '\\', '') for x in walk(sets_path)][1:]:
-            self._sets.append(TSet(sets_path / i))
+            self._sets.append(TSet(sets_path / i, inherit_settings=self._settings))
         if isinstance(self['allowedExtensions'], str):
             self['allowedExtensions'] = [self['allowedExtensions']]
         if validate_pkg:
@@ -750,7 +750,7 @@ class TSet(PackageManager):
         self._add_test_from_dir()
         if inherit_settings is not None:
             inherit_settings = inherit_settings.copy()
-            for k, v in inherit_settings:
+            for k, v in inherit_settings.items():
                 if k not in self._settings.keys() and v and k in self.DEFAULT_SETTINGS.keys():
                     self._settings[k] = v
 
