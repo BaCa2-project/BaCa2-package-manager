@@ -754,7 +754,8 @@ class TSet(PackageManager):
             if 'hinter' in inherit_settings.keys() and inherit_settings['hinter']:
                 self.hinter = True
             for k, v in inherit_settings.items():
-                if (k not in self._settings.keys() or not self._settings[k]) and v and k in self.DEFAULT_SETTINGS.keys():
+                if (k not in self._settings.keys() or not self._settings[
+                    k]) and v and k in self.DEFAULT_SETTINGS.keys():
                     self._settings[k] = v
 
         self._add_test_from_dir()
@@ -787,7 +788,8 @@ class TSet(PackageManager):
         for i in tests_to_do:
             if i not in names:
                 name_dict = {'name': i}
-                self._tests.append(TestF(self._path, name_dict, self._test_settings))
+                self._tests.append(
+                    TestF(self._path, name_dict, self._test_settings, hinter_mode=True))
 
     def tests(self, test_name: str = None, add_new: bool = False) -> 'TestF' or List['TestF']:
         """
@@ -963,7 +965,8 @@ class TestF(PackageManager):
         * ``output``: is a path or None value to actual output
     """
 
-    def __init__(self, path: Path, additional_settings: dict or Path, default_settings: dict, hinter_mode: bool = False):
+    def __init__(self, path: Path, additional_settings: dict or Path, default_settings: dict,
+                 hinter_mode: bool = False):
         """
         This function initializes the class by calling the superclass's __init__ function, which is the __init__ function of
         the Config class
