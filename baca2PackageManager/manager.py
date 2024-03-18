@@ -775,10 +775,10 @@ class TSet(PackageManager):
         """
         It takes a directory, finds all the files in it, and then adds all the tests that have both an input and output file
         """
-        test_files_ext = listdir(self._path)
         tests = []
-        for i in test_files_ext:
-            tests.append(match('.*[^.in|out]', i).group(0))
+        for i in self._path.iterdir():
+            if i.suffix in ('.in', '.out'):
+                tests.append(i.with_suffix('').name)
         tests_to_do = []
         for i in tests:
             if (not self.hinter and tests.count(i) == 2) or (self.hinter and tests.count(i) >= 1):
