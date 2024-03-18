@@ -744,15 +744,20 @@ class TSet(PackageManager):
             'time_limit': self._settings['time_limit'],
             'points': 0
         }
+        self.hinter = False
+
         if self._settings['tests'] is not None:
             for i in self._settings['tests'].values():
                 self._tests.append(TestF(path, i, self._test_settings))
-        self._add_test_from_dir()
         if inherit_settings is not None:
             inherit_settings = inherit_settings.copy()
+            if 'hinter' in inherit_settings.keys() and inherit_settings['hinter']:
+                self.hinter = True
             for k, v in inherit_settings.items():
                 if (k not in self._settings.keys() or not self._settings[k]) and v and k in self.DEFAULT_SETTINGS.keys():
                     self._settings[k] = v
+
+        self._add_test_from_dir()
 
     def move_test_file(self, to_set, filename):
         """
@@ -775,7 +780,7 @@ class TSet(PackageManager):
             tests.append(match('.*[^.in|out]', i).group(0))
         tests_to_do = []
         for i in tests:
-            if tests.count(i) == 2:
+            if (not self.hinter and tests.count(i) == 2) or (self.hinter and tests.count(i) >= 1):
                 tests_to_do.append(i)
         tests_to_do = set(tests_to_do)
         names = [i["name"] for i in self._tests]
@@ -958,7 +963,7 @@ class TestF(PackageManager):
         * ``output``: is a path or None value to actual output
     """
 
-    def __init__(self, path: Path, additional_settings: dict or Path, default_settings: dict):
+    def __init__(self, path: Path, additional_settings: dict or Path, default_settings: dict, hinter_mode: bool = False):
         """
         This function initializes the class by calling the superclass's __init__ function, which is the __init__ function of
         the Config class
@@ -976,7 +981,7 @@ class TestF(PackageManager):
         if input_file.is_file():
             self._settings['input'] = input_file
         output_file = self._path / (self._settings['name'] + '.out')
-        if output_file.is_file():
+        if not hinter_mode and output_file.is_file():
             self._settings['output'] = output_file
 
     def _rename_files(self, old_name, new_name):
