@@ -789,7 +789,7 @@ class TSet(PackageManager):
             if i not in names:
                 name_dict = {'name': i}
                 self._tests.append(
-                    TestF(self._path, name_dict, self._test_settings, hinter_mode=True))
+                    TestF(self._path, name_dict, self._test_settings, hinter_mode=self.hinter))
 
     def tests(self, test_name: str = None, add_new: bool = False) -> 'TestF' or List['TestF']:
         """
