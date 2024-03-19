@@ -226,7 +226,8 @@ class Package(PackageManager):
         'network': False,
         'verifier': None,
         'basename': None,
-        'cpus': 1
+        'cpus': 1,
+        'regex_count': None,
     }
 
     # TODO: Add auto-discovery of judge manager files
@@ -706,7 +707,6 @@ class TSet(PackageManager):
             * ``checker``: is a path or None value to actual checker
             * ``test_generator``: is a path or None value to actual generator
             * ``tests``: tests to run in set
-            * ``makefile``: name of a makefile
         """
     #: Default values for set settings
     DEFAULT_SETTINGS = {
@@ -720,6 +720,7 @@ class TSet(PackageManager):
         'checker': None,
         'verifier': None,
         'basename': None,
+        'environment': None,
     }
 
     def __init__(self, path: Path, inherit_settings: dict = None):
