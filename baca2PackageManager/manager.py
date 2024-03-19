@@ -283,8 +283,9 @@ class Package(PackageManager):
         super().__init__(path, config_path, Package.DEFAULT_SETTINGS)
         self._sets = []
         self.judge_manager = None
-        for i in [x[0].replace(str(sets_path) + '\\', '') for x in walk(sets_path)][1:]:
-            self._sets.append(TSet(sets_path / i, inherit_settings=self._settings))
+        for i in sets_path.iterdir():
+            if i.is_dir():
+                self._sets.append(TSet(i.absolute(), inherit_settings=self._settings))
         if isinstance(self['allowedExtensions'], str):
             self['allowedExtensions'] = [self['allowedExtensions']]
         if validate_pkg:

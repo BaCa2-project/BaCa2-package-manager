@@ -1,5 +1,6 @@
 basename: null
 checker: null
+environment: null
 makefile: null
 memory_limit: 10M
 name: set0

@@ -7,6 +7,7 @@ hinter: null
 memory_limit: 512M
 network: false
 points: 0
+regex_count: null
 test_generator: null
 time_limit: 10
 title: fibonacci
